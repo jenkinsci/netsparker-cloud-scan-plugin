@@ -1,0 +1,23 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <st:adjunct includes="org.kohsuke.stapler.jquery"/>
+    <!-- avoid conflict with prototype.js in core -->
+    <script>var Q = jQuery.noConflict()</script>
+    <f:section title="Netsparker Cloud">
+        <f:entry title="Netsparker Cloud Server URL" field="ncServerURL" help="/plugin/netsparker-cloud-scan/help-ncserverurl.html">
+            <f:textbox/>
+        </f:entry>
+        <f:entry title="API Token" field="ncApiToken" help="/plugin/netsparker-cloud-scan/help-ncapitoken.html">
+            <f:password/>
+        </f:entry>
+        <f:validateButton
+                title="Test Connection" progress="Testing..."
+                method="validateAPI" with="ncServerURL,ncApiToken"/>
+        <script type="text/javascript">
+            (function () {
+            Q("input[name='_.ncServerURL']").attr('placeholder', "Cloud URL, like 'https://www.netsparkercloud.com'");
+            })();
+        </script>
+    </f:section>
+</j:jelly>

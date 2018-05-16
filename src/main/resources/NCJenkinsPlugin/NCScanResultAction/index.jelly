@@ -1,0 +1,49 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <st:adjunct includes="org.kohsuke.stapler.jquery"/>
+    <!-- avoid conflict with prototype.js in core -->
+    <script>var Q = jQuery.noConflict()</script>
+
+    <l:layout title="Netsparker Cloud Scan Result">
+        <l:side-panel>
+            <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
+        </l:side-panel>
+        <l:main-panel>
+            <div>
+                <p id="netsparkerScanResultWarning"></p>
+                <iframe id="netsparkerScanResult"  style="width:100%;height:75vh; display:none; top:-20 px" src="getContent"></iframe>
+                <script type="text/javascript">
+                    Q(document).ready(function () {
+                        var isReportGenerated =<j:out value="${it.reportGenerated}"/>;
+                        var hasError =<j:out value="${it.error}"/>;
+                        <j:if test="${!it.reportGenerated}">
+                            var warningMessage="<j:out value="${it.content}"/>";
+                        </j:if>
+
+                        var errorMessage = "Scan report is not available because scan request failed.";
+                        var warning = Q('#netsparkerScanResultWarning');
+                        var iframe = document.getElementById('netsparkerScanResult');
+
+                        if (hasError) {
+                            warning.text(errorMessage);
+                            Q(iframe).hide();
+                        }
+                        else if (isReportGenerated) {
+                            Q(iframe).show();
+                            warning.hide();
+                        } else {
+                            if(!warningMessage){
+                                warningMessage="An error occurred during the requesting scan report.";
+                            }
+                            warning.text(warningMessage);
+                            Q(iframe).hide();
+                        }
+                    });
+                </script>
+            </div>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>
+
