@@ -1,4 +1,4 @@
-package Utility;
+package com.netsparker.cloud.utility;
 
 import org.apache.commons.validator.routines.UrlValidator;
 import org.json.simple.JSONArray;

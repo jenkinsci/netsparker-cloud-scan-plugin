@@ -1,4 +1,4 @@
-package Model;
+package com.netsparker.cloud.model;
 
 public class WebsiteProfileModel{
 	private  String id;

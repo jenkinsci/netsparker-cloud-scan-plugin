@@ -1,4 +1,4 @@
-package Model;
+package com.netsparker.cloud.model;
 
 import jenkins.model.Jenkins;
 import net.sf.corn.httpclient.HttpForm;

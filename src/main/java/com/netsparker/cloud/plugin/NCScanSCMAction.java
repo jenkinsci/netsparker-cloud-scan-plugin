@@ -1,6 +1,6 @@
-package NCJenkinsPlugin;
+package com.netsparker.cloud.plugin;
 
-import Model.VCSCommit;
+import com.netsparker.cloud.model.VCSCommit;
 import hudson.model.Action;
 
 import javax.annotation.CheckForNull;

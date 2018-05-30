@@ -1,6 +1,6 @@
-package Model;
+package com.netsparker.cloud.model;
 
-import Utility.AppCommon;
+import com.netsparker.cloud.utility.AppCommon;
 
 import java.net.MalformedURLException;
 import java.net.URL;

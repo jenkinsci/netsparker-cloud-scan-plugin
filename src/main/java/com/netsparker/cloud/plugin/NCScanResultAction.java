@@ -1,13 +1,11 @@
-package NCJenkinsPlugin;
+package com.netsparker.cloud.plugin;
 
-import Model.ScanRequestResult;
+import com.netsparker.cloud.model.ScanRequestResult;
 import hudson.model.Action;
 import hudson.model.Run;
 import hudson.util.HttpResponses;
 import jenkins.model.RunAction2;
 import org.kohsuke.stapler.HttpResponse;
-import org.kohsuke.stapler.WebMethod;
-import org.kohsuke.stapler.interceptor.RequirePOST;
 import org.kohsuke.stapler.verb.GET;
 
 import javax.annotation.CheckForNull;

@@ -1,6 +1,6 @@
-package Model;
+package com.netsparker.cloud.model;
 
-import Utility.AppCommon;
+import com.netsparker.cloud.utility.AppCommon;
 import net.sf.corn.httpclient.HttpForm;
 import net.sf.corn.httpclient.HttpResponse;
 

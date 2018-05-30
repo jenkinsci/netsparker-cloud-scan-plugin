@@ -1,4 +1,4 @@
-package Model;
+package com.netsparker.cloud.model;
 
 import net.sf.corn.httpclient.HttpForm;
 import net.sf.corn.httpclient.HttpResponse;

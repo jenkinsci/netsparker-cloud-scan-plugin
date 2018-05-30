@@ -1,7 +1,7 @@
-package NCJenkinsPlugin;
+package com.netsparker.cloud.plugin;
 
-import Model.*;
-import Utility.AppCommon;
+import com.netsparker.cloud.utility.AppCommon;
+import com.netsparker.cloud.model.*;
 import hudson.Launcher;
 import hudson.Extension;
 import hudson.FilePath;
@@ -29,8 +29,6 @@ import java.util.ArrayList;
 
 
 public class NCScanBuilder extends Builder implements SimpleBuildStep{
-	
-	private TaskListener listener;
 	
 	private String ncScanType;
 	private String ncWebsiteId;
@@ -71,21 +69,19 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 	
 	@Override
 	public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-		this.listener = listener;
-		logInfo("Scan step created...");
+		logInfo("Scan step created...", listener);
 		NCScanSCMAction scmAction = build.getAction(NCScanSCMAction.class);
 		VCSCommit commit = scmAction == null ? VCSCommit.Empty() : scmAction.getVcsCommit();
 		
 		try {
-			ScanRequestHandler(build, commit);
+			ScanRequestHandler(build, commit, listener);
 		} catch (Exception e) {
 			build.addAction(new NCScanResultAction(ScanRequestResult.ErrorResult()));
 			throw new IOException(e);
 		}
-		this.listener = null;
 	}
 	
-	private void ScanRequestHandler(Run<?, ?> build, VCSCommit commit) throws Exception {
+	private void ScanRequestHandler(Run<?, ?> build, VCSCommit commit, TaskListener listener) throws Exception {
 		DescriptorImpl descriptor = getDescriptor();
 		String ncServerURL = descriptor.getNcServerURL();
 		String ncApiToken = descriptor.getNcApiToken();
@@ -94,34 +90,34 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		ScanRequest scanRequest = new ScanRequest(
 				descriptor.getNcServerURL(), descriptor.getNcApiToken(), ncScanType, ncWebsiteId, ncProfileId, commit);
 		
-		logInfo("Requesting scan...");
+		logInfo("Requesting scan...", listener);
 		HttpResponse scanRequestResponse = scanRequest.scanRequest();
-		logInfo("Response status code: " + scanRequestResponse.getCode());
+		logInfo("Response status code: " + scanRequestResponse.getCode(), listener);
 		
 		ScanRequestResult scanRequestResult = new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken);
 		// HTTP status code 201 refers to created. This means our request added to queue. Otherwise it is failed.
 		if (scanRequestResult.getHttpStatusCode() == 201 && !scanRequestResult.isError()) {
-			ScanRequestSuccessHandler(build, scanRequestResult);
+			ScanRequestSuccessHandler(build, scanRequestResult, listener);
 		} else {
-			ScanRequestFailureHandler(scanRequestResult);
+			ScanRequestFailureHandler(scanRequestResult, listener);
 		}
 	}
 	
-	private void ScanRequestSuccessHandler(Run<?, ?> build, ScanRequestResult scanRequestResult) throws IOException {
+	private void ScanRequestSuccessHandler(Run<?, ?> build, ScanRequestResult scanRequestResult, TaskListener listener) throws IOException {
 		build.addAction(new NCScanResultAction(scanRequestResult));
-		logInfo("Scan requested successfully.");
+		logInfo("Scan requested successfully.", listener);
 	}
 	
-	private void ScanRequestFailureHandler(ScanRequestResult scanRequestResult) throws Exception {
-		logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage());
+	private void ScanRequestFailureHandler(ScanRequestResult scanRequestResult, TaskListener listener) throws Exception {
+		logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage(), listener);
 		throw new Exception("Netsparker Cloud Plugin: Failed to start the scan. Response status code: " + scanRequestResult.getHttpStatusCode());
 	}
 	
-	private void logInfo(String message) {
+	private void logInfo(String message, TaskListener listener) {
 		listener.getLogger().println("> Netsparker Cloud Plugin: " + message);
 	}
 	
-	private void logError(String message) {
+	private void logError(String message, TaskListener listener) {
 		listener.error("> Netsparker Cloud Plugin: " + message);
 	}
 	
@@ -230,12 +226,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				}
 			}
 			
-			String placeholderText="";
+			String placeholderText = "";
 			final ArrayList<WebsiteProfileModel> websiteProfileModels = websiteModel.getProfiles();
-			if(websiteProfileModels.isEmpty()){
-				placeholderText="-- No profile found --";
-			}else{
-				placeholderText="-- Please select a profile name --";
+			if (websiteProfileModels.isEmpty()) {
+				placeholderText = "-- No profile found --";
+			} else {
+				placeholderText = "-- Please select a profile name --";
 			}
 			
 			ListBoxModel model = new ListBoxModel();

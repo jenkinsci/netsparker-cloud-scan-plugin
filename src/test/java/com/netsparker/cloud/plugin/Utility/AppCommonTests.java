@@ -1,10 +1,9 @@
-package NCJenkinsPlugin.Utility;
+package com.netsparker.cloud.plugin.Utility;
 
-import Utility.AppCommon;
+import com.netsparker.cloud.utility.AppCommon;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.security.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;

@@ -1,17 +1,13 @@
-package NCJenkinsPlugin;
+package com.netsparker.cloud.plugin;
 
-import Model.VCSCommit;
-import Utility.AppCommon;
-import hudson.EnvVars;
+import com.netsparker.cloud.model.VCSCommit;
+import com.netsparker.cloud.utility.AppCommon;
 import hudson.Extension;
 import hudson.model.*;
 import hudson.model.listeners.SCMListener;
 import hudson.scm.ChangeLogSet;
 import hudson.scm.SCM;
-import jenkins.model.Jenkins;
-import jenkins.model.JenkinsLocationConfiguration;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
