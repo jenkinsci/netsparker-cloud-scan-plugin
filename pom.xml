@@ -151,13 +151,6 @@
         </dependency>
     </dependencies>
 
-    <!-- Assuming you want to host on @jenkinsci:
-    <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    </scm>
-    -->
     <repositories>
         <repository>
             <id>repo.jenkins-ci.org</id>
@@ -171,14 +164,21 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
+    <scm>
+        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
+        <url>https://github.com/jenkinsci/${project.artifactId}-plugin</url>
+    </scm>
+
     <licenses>
         <license>
-            <name></name>
-            <url></url>
+            <name>MIT License</name>
+            <url>https://raw.githubusercontent.com/jenkinsci/netsparker-cloud-scan-plugin/master/LICENSE</url>
         </license>
     </licenses>
-    <url>https://www.netsparker.com</url>
+
+    <url>https://wiki.jenkins.io/display/JENKINS/Netsparker+Cloud+Scan+Plugin</url>
+
     <developers>
         <developer>
             <id>duran@netsparker.com</id>
