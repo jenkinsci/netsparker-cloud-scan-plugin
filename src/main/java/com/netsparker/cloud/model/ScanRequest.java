@@ -10,8 +10,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 public class ScanRequest extends ScanRequestBase{
-	private final String json = "application/json";
-	
 	public ScanRequest(String apiURL, String apiToken, String scanType, String websiteId, String profileId, VCSCommit vcsCommit) throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
 		this.scanType = ScanType.valueOf(scanType);

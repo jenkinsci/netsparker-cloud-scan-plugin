@@ -10,7 +10,7 @@ import java.net.URL;
 import java.util.Date;
 
 public class ScanRequestResult extends ScanRequestBase{
-	public static ScanRequestResult ErrorResult() {
+	public static ScanRequestResult errorResult() {
 		return new ScanRequestResult();
 	}
 	
@@ -42,11 +42,11 @@ public class ScanRequestResult extends ScanRequestBase{
 		data = response.getData();
 		
 		try {
-			isError = !(boolean) AppCommon.ParseJsonValue(data, "IsValid");
+			isError = !(boolean) AppCommon.parseJsonValue(data, "IsValid");
 			if (!isError) {
-				scanTaskID = (String) AppCommon.ParseJsonValue(data, "ScanTaskId");
+				scanTaskID = (String) AppCommon.parseJsonValue(data, "ScanTaskId");
 			} else {
-				errorMessage = (String) AppCommon.ParseJsonValue(data, "ErrorMessage");
+				errorMessage = (String) AppCommon.parseJsonValue(data, "ErrorMessage");
 			}
 		} catch (Exception ex) {
 			isError = true;

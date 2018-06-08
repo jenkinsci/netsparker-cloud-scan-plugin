@@ -1,5 +1,6 @@
 package com.netsparker.cloud.model;
 
+import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import net.sf.corn.httpclient.HttpForm;
 
@@ -8,14 +9,15 @@ import java.util.Date;
 
 public class VCSCommit{
 	
-	public static VCSCommit Empty() {
+	public static VCSCommit empty() {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mmZ");
 		String dateString = dateFormat.format(new Date());
 		return new VCSCommit("", "","", false, "", "", "", dateString);
 	}
 	
 	public VCSCommit(String buildId, String buildConfigurationName, String buildURL, boolean buildHasChange, String versionControlName, String Committer, String vcsVersion, String ciTimestamp) {
-		this.ciBuildServerVersion = Jenkins.getVersion().toString();
+		VersionNumber versionNumber=Jenkins.getVersion();
+		this.ciBuildServerVersion = versionNumber != null ? versionNumber.toString() : "Not found.";
 		this.ciNcPluginVersion = "1.0.0";
 		this.buildId = buildId;
 		this.buildConfigurationName = buildConfigurationName;

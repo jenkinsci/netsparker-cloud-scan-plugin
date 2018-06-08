@@ -71,12 +71,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 	public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
 		logInfo("Scan step created...", listener);
 		NCScanSCMAction scmAction = build.getAction(NCScanSCMAction.class);
-		VCSCommit commit = scmAction == null ? VCSCommit.Empty() : scmAction.getVcsCommit();
+		VCSCommit commit = scmAction == null ? VCSCommit.empty() : scmAction.getVcsCommit();
 		
 		try {
 			ScanRequestHandler(build, commit, listener);
 		} catch (Exception e) {
-			build.addAction(new NCScanResultAction(ScanRequestResult.ErrorResult()));
+			build.addAction(new NCScanResultAction(ScanRequestResult.errorResult()));
 			throw new IOException(e);
 		}
 	}
@@ -266,7 +266,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				throws IOException, ServletException {
 			if (value.length() == 0) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiURL());
-			} else if (!AppCommon.IsUrlValid(value)) {
+			} else if (!AppCommon.isUrlValid(value)) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidApiURL());
 			}
 			
@@ -286,7 +286,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				throws IOException, ServletException {
 			
 			try {
-				ScanType type = ScanType.valueOf(value);
+				ScanType.valueOf(value);
 			} catch (Exception ex) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidScanType());
 			}
@@ -298,7 +298,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		public FormValidation doCheckNcWebsiteID(@QueryParameter String value)
 				throws IOException, ServletException {
 			
-			if (!AppCommon.IsGUIDValid(value)) {
+			if (!AppCommon.isGUIDValid(value)) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
 			}
 			
@@ -317,7 +317,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
 			}
 			
-			if (isRequired && !AppCommon.IsGUIDValid(value)) {
+			if (isRequired && !AppCommon.isGUIDValid(value)) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
 			}
 			

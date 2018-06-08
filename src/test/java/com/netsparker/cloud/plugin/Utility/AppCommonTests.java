@@ -12,14 +12,14 @@ public class AppCommonTests{
 	@Test
 	public void LocalURLValidation() {
 		AppCommon appCommon = new AppCommon();
-		boolean isValid = appCommon.IsUrlValid("http://localhost:2097");
+		boolean isValid = appCommon.isUrlValid("http://localhost:2097");
 		Assert.assertTrue(isValid);
 	}
 	
 	@Test
 	public void OnpremisesServerURLValidation() {
 		AppCommon appCommon = new AppCommon();
-		boolean isValid = appCommon.IsUrlValid("http://TFSServer:2097");
+		boolean isValid = appCommon.isUrlValid("http://TFSServer:2097");
 		Assert.assertTrue(isValid);
 	}
 	
@@ -27,7 +27,7 @@ public class AppCommonTests{
 	public void IsGuIDValid() {
 		String guidString = "eb3eecdc-266d-4b80-1230-a7ee03737f48";
 		AppCommon appCommon = new AppCommon();
-		boolean isValid = appCommon.IsGUIDValid(guidString);
+		boolean isValid = appCommon.isGUIDValid(guidString);
 		
 		Assert.assertTrue(isValid);
 	}

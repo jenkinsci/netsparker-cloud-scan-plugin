@@ -15,7 +15,6 @@ import java.net.URL;
 import java.util.ArrayList;
 
 public class WebsiteModelRequest extends ScanRequestBase{
-	private final String json = "application/json";
 	private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
 	private HttpResponse response;
 	

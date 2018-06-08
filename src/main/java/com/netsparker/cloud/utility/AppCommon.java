@@ -22,7 +22,7 @@ public class AppCommon{
 		return Arrays.asList(enumNames);
 	}
 	
-	public static boolean IsUrlValid(String url) {
+	public static boolean isUrlValid(String url) {
 		String[] schemes = {"http", "https"}; // DEFAULT schemes = "http", "https", "ftp"
 		UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 		
@@ -44,12 +44,12 @@ public class AppCommon{
 		return result;
 	}
 	
-	public static boolean IsGUIDValid(String guid) {
+	public static boolean isGUIDValid(String guid) {
 		try {
 			if (guid == null) {
 				return false;
 			}
-			UUID uuid = UUID.fromString(
+			UUID.fromString(
 					//fixes the guid if it doesn't contain hypens
 					guid.replaceFirst("(\\p{XDigit}{8})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}{4})(\\p{XDigit}+)", "$1-$2-$3-$4-$5"
 					));
@@ -65,13 +65,15 @@ public class AppCommon{
 	
 	public static String mapToQueryString(Map<String, String> map) {
 		StringBuilder stringBuilder = new StringBuilder();
-		
-		for (String key : map.keySet()) {
+		String key;
+		String value;
+		for (Map.Entry<String, String> entry : map.entrySet()) {
 			if (stringBuilder.length() > 0) {
 				stringBuilder.append("&");
 			}
-			String value = map.get(key);
 			try {
+				key=entry.getKey();
+				value=entry.getValue();
 				stringBuilder.append((key != null ? URLEncoder.encode(key, "UTF-8") : ""));
 				stringBuilder.append("=");
 				stringBuilder.append(value != null ? URLEncoder.encode(value, "UTF-8") : "");
@@ -100,7 +102,7 @@ public class AppCommon{
 		return map;
 	}
 	
-	public static Object ParseJsonValue(String Data, String key) throws ParseException {
+	public static Object parseJsonValue(String Data, String key) throws ParseException {
 		JSONParser parser = new JSONParser();
 		Object parsedData = parser.parse(Data);
 		Object value;
