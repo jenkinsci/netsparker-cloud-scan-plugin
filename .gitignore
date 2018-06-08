@@ -14,7 +14,7 @@
 
 # Package Files #
 *.jar
-!NCJenkinsPlugin/external/corn-httpclient-1.0.12.1.jar
+!external/corn-httpclient-1.0.12.1.jar
 *.war
 *.ear
 *.zip
