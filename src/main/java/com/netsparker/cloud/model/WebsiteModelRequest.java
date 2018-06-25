@@ -1,7 +1,9 @@
 package com.netsparker.cloud.model;
 
-import net.sf.corn.httpclient.HttpForm;
-import net.sf.corn.httpclient.HttpResponse;
+import com.netsparker.cloud.utility.AppCommon;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -20,7 +22,7 @@ public class WebsiteModelRequest extends ScanRequestBase{
 	
 	public WebsiteModelRequest(String apiURL, String apiToken) throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
-		pluginWebSiteModelsUri = getPluginWebSiteModelsEndpoint();
+		pluginWebSiteModelsUri =  new URL(ApiURL, "api/1.0/scans/PluginWebSiteModels").toURI();
 	}
 	
 	private final URI pluginWebSiteModelsUri;
@@ -29,25 +31,20 @@ public class WebsiteModelRequest extends ScanRequestBase{
 		return websiteModels;
 	}
 	
-	public HttpResponse getPluginWebSiteModels() throws IOException, URISyntaxException, ParseException {
-		HttpForm client = new HttpForm(pluginWebSiteModelsUri);
-		// Basic Authentication
-		client.setCredentials("", ApiToken);
-		client.setAcceptedType(json);
-		response = client.doGet();
-		if (response.getCode() == 200) {
+	public HttpResponse getPluginWebSiteModels() throws IOException, ParseException {
+		final HttpClient httpClient = getHttpClient();
+		final HttpGet httpGet = new HttpGet(pluginWebSiteModelsUri);
+		httpGet.addHeader("Accept",json);
+		
+		response = httpClient.execute(httpGet);
+		if (response.getStatusLine().getStatusCode() == 200) {
 			parseWebsiteData();
 		}
 		return response;
 	}
 	
-	private URI getPluginWebSiteModelsEndpoint() throws MalformedURLException, URISyntaxException {
-		String relativePath = "api/1.0/scans/PluginWebSiteModels";
-		return new URL(ApiURL, relativePath).toURI();
-	}
-	
-	private void parseWebsiteData() throws ParseException {
-		String data = response.getData();
+	private void parseWebsiteData() throws ParseException, IOException {
+		String data = AppCommon.parseResponseToString(response);
 		
 		JSONParser parser = new JSONParser();
 		Object jsonData = parser.parse(data);

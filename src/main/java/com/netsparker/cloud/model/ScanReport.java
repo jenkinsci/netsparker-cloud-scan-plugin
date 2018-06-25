@@ -1,11 +1,10 @@
 package com.netsparker.cloud.model;
 
-import net.sf.corn.httpclient.HttpResponse;
+import com.netsparker.cloud.utility.AppCommon;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import java.util.Date;
 
 public class ScanReport{
 	private final HttpResponse reportRequestResponse;
@@ -26,7 +25,7 @@ public class ScanReport{
 	}
 	
 	private String getContentType() {
-		return reportRequestResponse.getHeaderFields().get("Content-Type").get(0);
+		 return reportRequestResponse.getHeaders("Content-Type")[0].getValue();
 	}
 	
 	public String getContent() throws ParseException {
@@ -35,7 +34,7 @@ public class ScanReport{
 			if (hasError) {
 				content = "Scan report is not available because scan request failed.";
 			} else {
-				String contentData = reportRequestResponse.getData();
+				String contentData = AppCommon.parseResponseToString(reportRequestResponse);
 				if(isReportGenerated()){
 					content=contentData;
 				}else{

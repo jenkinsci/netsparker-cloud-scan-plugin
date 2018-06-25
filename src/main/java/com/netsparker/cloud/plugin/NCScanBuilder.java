@@ -13,14 +13,11 @@ import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
-import net.sf.corn.httpclient.HttpResponse;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.QueryParameter;
+import org.apache.http.HttpResponse;
+import org.kohsuke.stapler.*;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
 import javax.servlet.ServletException;
@@ -91,8 +88,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				descriptor.getNcServerURL(), descriptor.getNcApiToken(), ncScanType, ncWebsiteId, ncProfileId, commit);
 		
 		logInfo("Requesting scan...", listener);
-		HttpResponse scanRequestResponse = scanRequest.scanRequest();
-		logInfo("Response status code: " + scanRequestResponse.getCode(), listener);
+		org.apache.http.HttpResponse scanRequestResponse = scanRequest.scanRequest();
+		logInfo("Response status code: " + scanRequestResponse.getStatusLine().getStatusCode(), listener);
 		
 		ScanRequestResult scanRequestResult = new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken);
 		// HTTP status code 201 refers to created. This means our request added to queue. Otherwise it is failed.
@@ -249,13 +246,13 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 			try {
 				WebsiteModelRequest websiteModelRequest = new WebsiteModelRequest(ncServerURL, ncApiToken);
 				final HttpResponse response = websiteModelRequest.getPluginWebSiteModels();
-				
-				if (response.getCode() == 200) {
+				int statusCode = response.getStatusLine().getStatusCode();
+				if (statusCode == 200) {
 					websiteModels = new ArrayList<>();
 					websiteModels.addAll(websiteModelRequest.getWebsiteModels());
 					return FormValidation.ok("Successfully connected to the Netsparker Cloud.");
 				} else {
-					return FormValidation.error("Netsparker Cloud rejected the request. HTTP status code: " + response.getCode());
+					return FormValidation.error("Netsparker Cloud rejected the request. HTTP status code: " + statusCode);
 				}
 			} catch (Exception e) {
 				return FormValidation.error("Failed to connect to the Netsparker Cloud. : " + e.toString());

@@ -1,6 +1,8 @@
 package com.netsparker.cloud.utility;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.apache.http.HttpResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -115,5 +117,9 @@ public class AppCommon{
 			value = obj.get(key);
 		}
 		return value;
+	}
+	
+	public static String parseResponseToString(HttpResponse response) throws IOException {
+		return IOUtils.toString(response.getEntity().getContent());
 	}
 }

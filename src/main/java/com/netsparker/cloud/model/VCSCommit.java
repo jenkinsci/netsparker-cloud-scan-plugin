@@ -2,10 +2,12 @@ package com.netsparker.cloud.model;
 
 import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
-import net.sf.corn.httpclient.HttpForm;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class VCSCommit{
 	
@@ -50,17 +52,17 @@ public class VCSCommit{
 		this.rootURL = rootURL;
 	}
 	
-	public void addVcsCommitInfo(HttpForm client) {
-		client.putFieldValue("VcsCommitInfoModel.CiBuildId", buildId);
-		client.putFieldValue("VcsCommitInfoModel.IntegrationSystem", "Jenkins");
-		client.putFieldValue("VcsCommitInfoModel.CiBuildServerVersion", ciBuildServerVersion);
-		client.putFieldValue("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion);
-		client.putFieldValue("VcsCommitInfoModel.CiBuildConfigurationName", buildConfigurationName);
-		client.putFieldValue("VcsCommitInfoModel.CiBuildUrl", rootURL + buildURL);
-		client.putFieldValue("VcsCommitInfoModel.CiBuildHasChange", String.valueOf(buildHasChange));
-		client.putFieldValue("VcsCommitInfoModel.CiTimestamp", ciTimestamp);
-		client.putFieldValue("VcsCommitInfoModel.VcsName", versionControlName);
-		client.putFieldValue("VcsCommitInfoModel.VcsVersion", vcsVersion);
-		client.putFieldValue("VcsCommitInfoModel.Committer", committer);
+	public void addVcsCommitInfo(List<NameValuePair> params) {
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildId", buildId));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.IntegrationSystem", "Jenkins"));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildServerVersion", ciBuildServerVersion));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildConfigurationName", buildConfigurationName));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildUrl", rootURL + buildURL));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildHasChange", String.valueOf(buildHasChange)));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.CiTimestamp", ciTimestamp));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsName", versionControlName));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsVersion", vcsVersion));
+		params.add(new BasicNameValuePair("VcsCommitInfoModel.Committer", committer));
 	}
 }

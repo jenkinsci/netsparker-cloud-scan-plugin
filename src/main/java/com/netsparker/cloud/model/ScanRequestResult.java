@@ -1,18 +1,23 @@
 package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
-import net.sf.corn.httpclient.HttpForm;
-import net.sf.corn.httpclient.HttpResponse;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Date;
+import java.util.*;
 
 public class ScanRequestResult extends ScanRequestBase{
 	public static ScanRequestResult errorResult() {
 		return new ScanRequestResult();
 	}
+	
+	private final URI scanReportEndpointUri;
 	
 	private final int httpStatusCode;
 	private final String data;
@@ -24,7 +29,7 @@ public class ScanRequestResult extends ScanRequestBase{
 	//Response from Netsparker Cloud API
 	private ScanReport report = null;
 	private Date previousRequestTime;
-
+	
 	
 	private ScanRequestResult() {
 		super();
@@ -32,14 +37,16 @@ public class ScanRequestResult extends ScanRequestBase{
 		scanTaskID = null;
 		data = null;
 		httpStatusCode = 0;
+		scanReportEndpointUri = null;
 	}
 	
 	public ScanRequestResult(HttpResponse response, String apiURL, String apiToken) throws Exception {
 		super(apiURL, apiToken);
-		
-		isError = response.hasError();
-		httpStatusCode = response.getCode();
-		data = response.getData();
+		httpStatusCode = response.getStatusLine().getStatusCode();
+		isError = httpStatusCode != 201;
+		data = AppCommon.parseResponseToString(response);
+		String scanReportRelativeUrl = "api/1.0/scans/report/%s" + getReportParams();
+		scanReportEndpointUri = new URL(ApiURL, String.format(scanReportRelativeUrl, scanTaskID)).toURI();
 		
 		try {
 			isError = !(boolean) AppCommon.parseJsonValue(data, "IsValid");
@@ -50,7 +57,7 @@ public class ScanRequestResult extends ScanRequestBase{
 			}
 		} catch (Exception ex) {
 			isError = true;
-			errorMessage="Scan request result is not parsable.";
+			errorMessage = "Scan request result is not parsable.";
 		}
 	}
 	
@@ -88,7 +95,7 @@ public class ScanRequestResult extends ScanRequestBase{
 		Date now = new Date();
 		//Is report not requested or have request threshold passed
 		//And report isn't generated yet
-		boolean isTimeThresholdPassed = previousRequestTime == null || now.getTime() - previousRequestTime.getTime() >=  60 * 1000;//1 min
+		boolean isTimeThresholdPassed = previousRequestTime == null || now.getTime() - previousRequestTime.getTime() >= 60 * 1000;//1 min
 		return !isReportAvailable() && isTimeThresholdPassed;
 	}
 	
@@ -109,22 +116,22 @@ public class ScanRequestResult extends ScanRequestBase{
 	}
 	
 	private ScanReport getReportFromNcCloud() throws IOException, URISyntaxException {
-		ReportType reportType = ReportType.ExecutiveSummary;
-		String reportFormatCode = "3";
+		final HttpClient httpClient = getHttpClient();
+		final HttpGet httpGet = new HttpGet(scanReportEndpointUri);
+		httpGet.addHeader("Accept", "text/html");
 		
-		String reportEndPoint_RelativeURL = "api/1.0/scans/report/%s";
-		HttpForm client = new HttpForm(new URL(ApiURL, String.format(reportEndPoint_RelativeURL, scanTaskID)).toURI());
-		//default is XML. We expect "text/html";
-		client.setAcceptedType("text/html");
-		// Basic Authentication
-		client.setCredentials("", ApiToken);
-		client.putFieldValue("Type", reportType.getNumberAsString());
-		client.putFieldValue("Format", reportFormatCode);
-		
-		HttpResponse response = client.doGet();
+		HttpResponse response = httpClient.execute(httpGet);
 		ScanReport report = new ScanReport(response, isError());
 		this.report = report;
 		
 		return report;
+	}
+	
+	private String getReportParams() {
+		Map<String, String> map = new HashMap<String, String>();
+		map.put("Type", ReportType.ExecutiveSummary.getNumberAsString());
+		map.put("Format", "3");
+		
+		return AppCommon.mapToQueryString(map);
 	}
 }

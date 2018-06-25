@@ -27,28 +27,6 @@
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <id>install-external</id>
-                            <phase>clean</phase>
-                            <configuration>
-                                <file>${basedir}/external/corn-httpclient-1.0.12.1.jar</file>
-                                <repositoryLayout>default</repositoryLayout>
-                                <groupId>net.sf.corn</groupId>
-                                <artifactId>corn-httpclient</artifactId>
-                                <version>1.0.12.1</version>
-                                <packaging>jar</packaging>
-                                <generatePom>true</generatePom>
-                            </configuration>
-                            <goals>
-                                <goal>install-file</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
                         <source>1.8</source>
@@ -69,6 +47,12 @@
                     <artifactId>stapler</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.5</version>
         </dependency>
         <dependency>
             <groupId>commons-digester</groupId>
@@ -94,11 +78,6 @@
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.corn</groupId>
-            <artifactId>corn-httpclient</artifactId>
-            <version>1.0.12.1</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
