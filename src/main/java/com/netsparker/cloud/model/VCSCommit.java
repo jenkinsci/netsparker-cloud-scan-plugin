@@ -20,7 +20,7 @@ public class VCSCommit{
 	public VCSCommit(String buildId, String buildConfigurationName, String buildURL, boolean buildHasChange, String versionControlName, String Committer, String vcsVersion, String ciTimestamp) {
 		VersionNumber versionNumber=Jenkins.getVersion();
 		this.ciBuildServerVersion = versionNumber != null ? versionNumber.toString() : "Not found.";
-		this.ciNcPluginVersion = "1.0.0";
+		this.ciNcPluginVersion = "1.1.2";
 		this.buildId = buildId;
 		this.buildConfigurationName = buildConfigurationName;
 		this.buildURL=buildURL;
