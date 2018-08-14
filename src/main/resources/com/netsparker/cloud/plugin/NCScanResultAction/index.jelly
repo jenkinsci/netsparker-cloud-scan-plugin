@@ -12,32 +12,23 @@
         </l:side-panel>
         <l:main-panel>
             <div>
-                <p id="netsparkerScanResultWarning"></p>
+                <div id="netsparkerScanResultWarning"></div>
                 <iframe id="netsparkerScanResult"  style="width:100%;height:75vh; display:none; top:-20 px" src="getContent"></iframe>
                 <script type="text/javascript">
                     Q(document).ready(function () {
                         var isReportGenerated =<j:out value="${it.reportGenerated}"/>;
-                        var hasError =<j:out value="${it.error}"/>;
                         <j:if test="${!it.reportGenerated}">
                             var warningMessage="<j:out value="${it.content}"/>";
                         </j:if>
 
-                        var errorMessage = "Scan report is not available because scan request failed.";
                         var warning = Q('#netsparkerScanResultWarning');
                         var iframe = document.getElementById('netsparkerScanResult');
 
-                        if (hasError) {
-                            warning.text(errorMessage);
-                            Q(iframe).hide();
-                        }
-                        else if (isReportGenerated) {
+                        if (isReportGenerated) {
                             Q(iframe).show();
                             warning.hide();
                         } else {
-                            if(!warningMessage){
-                                warningMessage="An error occurred during the requesting scan report.";
-                            }
-                            warning.text(warningMessage);
+                            warning.html(warningMessage);
                             Q(iframe).hide();
                         }
                     });

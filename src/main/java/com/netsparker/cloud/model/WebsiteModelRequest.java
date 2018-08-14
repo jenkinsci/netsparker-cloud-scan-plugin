@@ -1,6 +1,7 @@
 package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -34,7 +35,8 @@ public class WebsiteModelRequest extends ScanRequestBase{
 	public HttpResponse getPluginWebSiteModels() throws IOException, ParseException {
 		final HttpClient httpClient = getHttpClient();
 		final HttpGet httpGet = new HttpGet(pluginWebSiteModelsUri);
-		httpGet.addHeader("Accept",json);
+		httpGet.setHeader("Accept",json);
+		httpGet.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
 		
 		response = httpClient.execute(httpGet);
 		if (response.getStatusLine().getStatusCode() == 200) {

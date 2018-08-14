@@ -1,64 +1,73 @@
 package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
-
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
 public class ScanRequestResult extends ScanRequestBase{
-	public static ScanRequestResult errorResult() {
-		return new ScanRequestResult();
+	public static ScanRequestResult errorResult(String errorMessage) {
+		return new ScanRequestResult(errorMessage);
 	}
 	
-	private final URI scanReportEndpointUri;
-	
+	private String scanReportEndpoint;
 	private final int httpStatusCode;
-	private final String data;
-	
+	private String data;
 	private String scanTaskID;
 	private boolean isError;
 	private String errorMessage;
-	
-	//Response from Netsparker Cloud API
 	private ScanReport report = null;
 	private Date previousRequestTime;
 	
-	
-	private ScanRequestResult() {
+	private ScanRequestResult(String errorMessage) {
 		super();
-		isError = true;
-		scanTaskID = null;
-		data = null;
+		this.errorMessage = errorMessage;
 		httpStatusCode = 0;
-		scanReportEndpointUri = null;
+		isError = true;
+		data = "";
 	}
 	
-	public ScanRequestResult(HttpResponse response, String apiURL, String apiToken) throws Exception {
+	public ScanRequestResult(HttpResponse response, String apiURL, String apiToken) throws MalformedURLException, URISyntaxException {
 		super(apiURL, apiToken);
 		httpStatusCode = response.getStatusLine().getStatusCode();
 		isError = httpStatusCode != 201;
-		data = AppCommon.parseResponseToString(response);
-		String scanReportRelativeUrl = "api/1.0/scans/report/%s" + getReportParams();
-		scanReportEndpointUri = new URL(ApiURL, String.format(scanReportRelativeUrl, scanTaskID)).toURI();
 		
-		try {
-			isError = !(boolean) AppCommon.parseJsonValue(data, "IsValid");
-			if (!isError) {
-				scanTaskID = (String) AppCommon.parseJsonValue(data, "ScanTaskId");
-			} else {
-				errorMessage = (String) AppCommon.parseJsonValue(data, "ErrorMessage");
+		if (!isError) {
+			try {
+				data = AppCommon.parseResponseToString(response);
+				isError = !(boolean) AppCommon.parseJsonValue(data, "IsValid");
+				if (!isError) {
+					scanTaskID = (String) AppCommon.parseJsonValue(data, "ScanTaskId");
+				} else {
+					errorMessage = (String) AppCommon.parseJsonValue(data, "ErrorMessage");
+				}
+			} catch (ParseException ex) {
+				isError = true;
+				errorMessage = "Scan request result is not parsable::: " + ex.toString();
+			} catch (IOException ex) {
+				isError = true;
+				errorMessage = "Scan request result is not readable::: " + ex.toString();
 			}
-		} catch (Exception ex) {
-			isError = true;
-			errorMessage = "Scan request result is not parsable.";
 		}
+		
+		String scanReportRelativeUrl = "api/1.0/scans/report/";
+		URI scanReportEndpointUri = new URL(ApiURL, scanReportRelativeUrl).toURI();
+		
+		Map<String, String> queryparams = new HashMap<>();
+		queryparams.put("Type", "ExecutiveSummary");
+		queryparams.put("Format", "Html");
+		queryparams.put("Id", scanTaskID);
+		
+		scanReportEndpoint = scanReportEndpointUri.toString() + "?" + AppCommon.mapToQueryString(queryparams);
 	}
 	
 	public int getHttpStatusCode() {
@@ -74,64 +83,43 @@ public class ScanRequestResult extends ScanRequestBase{
 	}
 	
 	public boolean isReportGenerated() {
-		//If scan request is failed we don't need additional check.
-		if (isError()) {
-			return false;
-		} else if (isReportAvailable()) {
-			return true;
-		} else if (canAskForReportFromNCCloud()) {//If report is not requested or report wasn't ready in previous request we must check again.
-			try {
-				final ScanReport report = getReport();
-				return report.isReportGenerated();
-			} catch (Exception ex) {
-				return false;
-			}
-		} else {
-			return false;
-		}
+		return getReport().isReportGenerated();
 	}
 	
-	public boolean canAskForReportFromNCCloud() {
-		Date now = new Date();
-		//Is report not requested or have request threshold passed
-		//And report isn't generated yet
-		boolean isTimeThresholdPassed = previousRequestTime == null || now.getTime() - previousRequestTime.getTime() >= 60 * 1000;//1 min
-		return !isReportAvailable() && isTimeThresholdPassed;
+	private boolean canAskForReportFromNCCloud() {
+		return previousRequestTime == null || new Date().getTime() - previousRequestTime.getTime() >= 60 * 1000;//1 min
 	}
 	
-	
-	private boolean isReportAvailable() {
-		return report != null && report.isReportGenerated();
-	}
-	
-	
-	public ScanReport getReport() throws IOException, URISyntaxException {
-		// if report is not generated and requested yet, request it from ncCloudserver.
+	public ScanReport getReport() {
 		if (canAskForReportFromNCCloud()) {
 			final ScanReport reportFromNcCloud = getReportFromNcCloud();
 			previousRequestTime = new Date();
+			
 			return reportFromNcCloud;
 		}
-		return report;
-	}
-	
-	private ScanReport getReportFromNcCloud() throws IOException, URISyntaxException {
-		final HttpClient httpClient = getHttpClient();
-		final HttpGet httpGet = new HttpGet(scanReportEndpointUri);
-		httpGet.addHeader("Accept", "text/html");
-		
-		HttpResponse response = httpClient.execute(httpGet);
-		ScanReport report = new ScanReport(response, isError());
-		this.report = report;
 		
 		return report;
 	}
 	
-	private String getReportParams() {
-		Map<String, String> map = new HashMap<String, String>();
-		map.put("Type", ReportType.ExecutiveSummary.getNumberAsString());
-		map.put("Format", "3");
+	private ScanReport getReportFromNcCloud() {
+		if (!isError) {
+			try {
+				final HttpClient httpClient = getHttpClient();
+				final HttpGet httpGet = new HttpGet(scanReportEndpoint);
+				httpGet.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
+				
+				HttpResponse response = httpClient.execute(httpGet);
+				report = new ScanReport(response, scanReportEndpoint);
+			} catch (IOException ex) {
+				String reportRequestErrorMessage = "Report result is not readable::: " + ex.toString();
+				report = new ScanReport(false, "",
+						true, reportRequestErrorMessage, scanReportEndpoint);
+			}
+		} else {
+			report = new ScanReport(true, errorMessage,
+					false, "", scanReportEndpoint);
+		}
 		
-		return AppCommon.mapToQueryString(map);
+		return report;
 	}
 }

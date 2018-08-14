@@ -1,5 +1,6 @@
 package com.netsparker.cloud.model;
 
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
@@ -37,7 +38,8 @@ public class ScanRequest extends ScanRequestBase{
 	public HttpResponse scanRequest() throws IOException {
 		HttpClient client = getHttpClient();
 		final HttpPost httpPost = new HttpPost(scanUri);
-		httpPost.addHeader("Accept",json);
+		httpPost.setHeader("Accept",json);
+		httpPost.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
 		
 		List<NameValuePair> params = new ArrayList<>();
 		setScanParams(params);
@@ -52,7 +54,8 @@ public class ScanRequest extends ScanRequestBase{
 	public HttpResponse testRequest() throws IOException {
 		HttpClient client = getHttpClient();
 		final HttpPost httpPost = new HttpPost(testUri);
-		httpPost.addHeader("Accept",json);
+		httpPost.setHeader("Accept",json);
+		httpPost.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
 		
 		List<NameValuePair> params = new ArrayList<>();
 		setScanParams(params);

@@ -20,8 +20,8 @@ import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
-import javax.servlet.ServletException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 
@@ -73,7 +73,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		try {
 			ScanRequestHandler(build, commit, listener);
 		} catch (Exception e) {
-			build.addAction(new NCScanResultAction(ScanRequestResult.errorResult()));
+			build.addAction(new NCScanResultAction(ScanRequestResult.errorResult("Scan Request Failed:: " + e.getMessage())));
+			
 			throw new IOException(e);
 		}
 	}
@@ -96,17 +97,18 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		if (scanRequestResult.getHttpStatusCode() == 201 && !scanRequestResult.isError()) {
 			ScanRequestSuccessHandler(build, scanRequestResult, listener);
 		} else {
-			ScanRequestFailureHandler(scanRequestResult, listener);
+			ScanRequestFailureHandler(build, scanRequestResult, listener);
 		}
 	}
 	
 	private void ScanRequestSuccessHandler(Run<?, ?> build, ScanRequestResult scanRequestResult, TaskListener listener) throws IOException {
-		build.addAction(new NCScanResultAction(scanRequestResult));
 		logInfo("Scan requested successfully.", listener);
+		build.addAction(new NCScanResultAction(scanRequestResult));
 	}
 	
-	private void ScanRequestFailureHandler(ScanRequestResult scanRequestResult, TaskListener listener) throws Exception {
+	private void ScanRequestFailureHandler(Run<?, ?> build, ScanRequestResult scanRequestResult, TaskListener listener) throws Exception {
 		logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage(), listener);
+		build.addAction(new NCScanResultAction(scanRequestResult));
 		throw new Exception("Netsparker Cloud Plugin: Failed to start the scan. Response status code: " + scanRequestResult.getHttpStatusCode());
 	}
 	
@@ -223,7 +225,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 				}
 			}
 			
-			String placeholderText = "";
+			String placeholderText;
 			final ArrayList<WebsiteProfileModel> websiteProfileModels = websiteModel.getProfiles();
 			if (websiteProfileModels.isEmpty()) {
 				placeholderText = "-- No profile found --";
@@ -242,7 +244,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		}
 		
 		public FormValidation doValidateAPI(@QueryParameter final String ncServerURL,
-		                                    @QueryParameter final String ncApiToken) throws IOException, ServletException {
+		                                    @QueryParameter final String ncApiToken) {
 			try {
 				WebsiteModelRequest websiteModelRequest = new WebsiteModelRequest(ncServerURL, ncApiToken);
 				final HttpResponse response = websiteModelRequest.getPluginWebSiteModels();
@@ -259,8 +261,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 			}
 		}
 		
-		public FormValidation doCheckNcServerURL(@QueryParameter String value)
-				throws IOException, ServletException {
+		public FormValidation doCheckNcServerURL(@QueryParameter String value) {
 			if (value.length() == 0) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiURL());
 			} else if (!AppCommon.isUrlValid(value)) {
@@ -270,8 +271,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 			return FormValidation.ok();
 		}
 		
-		public FormValidation doCheckNcApiToken(@QueryParameter String value)
-				throws IOException, ServletException {
+		public FormValidation doCheckNcApiToken(@QueryParameter String value) {
 			if (value.length() == 0) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiToken());
 			}
@@ -279,9 +279,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 			return FormValidation.ok();
 		}
 		
-		public FormValidation doCheckNcScanType(@QueryParameter String value)
-				throws IOException, ServletException {
-			
+		public FormValidation doCheckNcScanType(@QueryParameter String value) {
 			try {
 				ScanType.valueOf(value);
 			} catch (Exception ex) {
@@ -292,8 +290,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 		}
 		
 		
-		public FormValidation doCheckNcWebsiteID(@QueryParameter String value)
-				throws IOException, ServletException {
+		public FormValidation doCheckNcWebsiteID(@QueryParameter String value) {
 			
 			if (!AppCommon.isGUIDValid(value)) {
 				return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
@@ -302,8 +299,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep{
 			return FormValidation.ok();
 		}
 		
-		public FormValidation doCheckNcProfileId(@QueryParameter String value, @QueryParameter String ncScanType)
-				throws IOException, ServletException {
+		public FormValidation doCheckNcProfileId(@QueryParameter String value, @QueryParameter String ncScanType) {
 			
 			boolean isRequired;
 			

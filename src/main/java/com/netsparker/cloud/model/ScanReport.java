@@ -6,15 +6,34 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
-
 public class ScanReport{
-	private final HttpResponse reportRequestResponse;
-	private final boolean hasError;
+	private String content = "";
+	private String contentType = "";
+	private int statusCode = 0;
+	private final boolean scanRequestHasError;
+	private final String scanRequestErrorMessage;
+	private final boolean reportRequestHasError;
+	private final String reportRequestErrorMessage;
+	private final String requestURI;
 	
-	public ScanReport(final HttpResponse reportRequestResponse, final boolean hasError) {
-		this.reportRequestResponse = reportRequestResponse;
-		this.hasError = hasError;
+	public ScanReport(HttpResponse reportRequestResponse, String requestURI) {
+		setStatusCode(reportRequestResponse);
+		setContentType(reportRequestResponse);
+		setContent(reportRequestResponse);
+		this.scanRequestHasError = false;
+		this.scanRequestErrorMessage = "";
+		this.reportRequestHasError = false;
+		this.reportRequestErrorMessage = "";
+		this.requestURI = requestURI;
+	}
+	
+	public ScanReport(boolean scanRequestHasError, String scanRequestErrorMessage,
+	                  boolean reportRequestHasError, String reportRequestErrorMessage, String requestURI) {
+		this.scanRequestHasError = scanRequestHasError;
+		this.scanRequestErrorMessage = scanRequestErrorMessage;
+		this.reportRequestHasError = reportRequestHasError;
+		this.reportRequestErrorMessage = reportRequestErrorMessage;
+		this.requestURI = requestURI;
 	}
 	
 	public boolean isReportGenerated() {
@@ -26,17 +45,37 @@ public class ScanReport{
 		}
 	}
 	
+	private void setStatusCode(HttpResponse httpResponse) {
+		if (httpResponse != null && httpResponse.getStatusLine() != null) {
+			statusCode = httpResponse.getStatusLine().getStatusCode();
+		}
+	}
+	
 	private String getContentType() {
-		return reportRequestResponse.getHeaders("Content-Type")[0].getValue();
+		return contentType;
+	}
+	
+	private void setContentType(HttpResponse httpResponse) {
+		if (httpResponse == null) {
+			contentType = "Error-Content";
+		} else {
+			contentType = httpResponse.getHeaders("Content-Type")[0].getValue();
+		}
 	}
 	
 	public String getContent() {
-		String content;
+		return content;
+	}
+	
+	private void setContent(HttpResponse httpResponse) {
+		String content = "";
 		try {
-			if (hasError) {
-				content = "Scan report is not available because scan request failed.";
+			if (scanRequestHasError) {
+				content = ExceptionContent(content, scanRequestErrorMessage);
+			} else if (reportRequestHasError) {
+				content = ExceptionContent(content, reportRequestErrorMessage);
 			} else {
-				String contentData = AppCommon.parseResponseToString(reportRequestResponse);
+				String contentData = AppCommon.parseResponseToString(httpResponse);
 				if (isReportGenerated()) {
 					content = contentData;
 				} else {
@@ -45,11 +84,30 @@ public class ScanReport{
 					content = (String) obj.get("Message");
 				}
 			}
-		} catch (ParseException e) {
-			content = "An error occurred during the requesting scan report.";
-		} catch (IOException e) {
-			content = "An error occurred during the requesting scan report.";
+		} catch (ParseException ex) {
+			content = ExceptionContent("Report result is not parsable.", ex.toString());
+		} catch (Exception ex) {
+			content = ExceptionContent(content, ex.toString());
 		}
+		
+		this.content = content;
+	}
+	
+	private String ExceptionContent(String content, String ExceptionMessage) {
+		if (content != null && !content.isEmpty()) {
+			content = "<p>" + content + "</p>";
+		}
+		if (requestURI != null) {
+			content = content
+					+ "<p>Request URL: " + requestURI + "</p>";
+		}
+		content = content + "<p>HttpStatusCode: " + statusCode + "</p>";
+		
+		if (ExceptionMessage != null) {
+			content = content
+					+ "<p>Exception Message:: " + ExceptionMessage + "</p>";
+		}
+		
 		return content;
 	}
 }

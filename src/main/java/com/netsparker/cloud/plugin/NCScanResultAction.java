@@ -27,11 +27,7 @@ public class NCScanResultAction implements Action, RunAction2{
 	}
 	
 	public String getContent(){
-		try {
 			return scanRequestResult.getReport().getContent();
-		} catch (Exception e) {
-			return "An error occurred during the requesting scan report.";
-		}
 	}
 	
 	public String getError(){
