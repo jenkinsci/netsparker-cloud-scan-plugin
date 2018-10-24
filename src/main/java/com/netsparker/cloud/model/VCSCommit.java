@@ -15,7 +15,7 @@ import java.util.List;
 
 public class VCSCommit {
 
-    public static VCSCommit Empty(Run<?, ?> build) {
+    public static VCSCommit empty(Run<?, ?> build) {
         return new VCSCommit(build, null);
     }
 

@@ -87,7 +87,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         logInfo("Scan step created...", listener);
 
         NCScanSCMAction scmAction = build.getAction(NCScanSCMAction.class);
-        VCSCommit commit = scmAction == null ? VCSCommit.Empty(build) : scmAction.getVcsCommit();
+        VCSCommit commit = scmAction == null ? VCSCommit.empty(build) : scmAction.getVcsCommit();
 
         try {
             ScanRequestHandler(build, commit, listener);
