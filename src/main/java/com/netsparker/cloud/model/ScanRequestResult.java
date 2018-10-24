@@ -7,6 +7,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.json.simple.parser.ParseException;
 
+
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -20,13 +21,17 @@ public class ScanRequestResult extends ScanRequestBase{
 	}
 	
 	private String scanReportEndpoint;
+	
 	private final int httpStatusCode;
 	private String data;
 	private String scanTaskID;
 	private boolean isError;
 	private String errorMessage;
+	
+	//Response from Netsparker Cloud API
 	private ScanReport report = null;
 	private Date previousRequestTime;
+	
 	
 	private ScanRequestResult(String errorMessage) {
 		super();
@@ -83,14 +88,39 @@ public class ScanRequestResult extends ScanRequestBase{
 	}
 	
 	public boolean isReportGenerated() {
-		return getReport().isReportGenerated();
+		//If scan request is failed we don't need additional check.
+		if (isError()) {
+			return false;
+		} else if (isReportAvailable()) {
+			return true;
+		} else if (canAskForReportFromNCCloud()) {//If report is not requested or report wasn't ready in previous request we must check again.
+			try {
+				final ScanReport report = getReport();
+				return report.isReportGenerated();
+			} catch (Exception ex) {
+				return false;
+			}
+		} else {
+			return false;
+		}
 	}
 	
 	private boolean canAskForReportFromNCCloud() {
-		return previousRequestTime == null || new Date().getTime() - previousRequestTime.getTime() >= 60 * 1000;//1 min
+		Date now = new Date();
+		//Is report not requested or have request threshold passed
+		//And report isn't generated yet
+		boolean isTimeThresholdPassed = previousRequestTime == null || now.getTime() - previousRequestTime.getTime() >= 60 * 1000;//1 min
+		return !isReportAvailable() && isTimeThresholdPassed;
 	}
 	
+	
+	private boolean isReportAvailable() {
+		return report != null && report.isReportGenerated();
+	}
+	
+	
 	public ScanReport getReport() {
+		// if report is not generated and requested yet, request it from Netparker Cloud server.
 		if (canAskForReportFromNCCloud()) {
 			final ScanReport reportFromNcCloud = getReportFromNcCloud();
 			previousRequestTime = new Date();
@@ -102,6 +132,8 @@ public class ScanRequestResult extends ScanRequestBase{
 	}
 	
 	private ScanReport getReportFromNcCloud() {
+		ScanReport report;
+		
 		if (!isError) {
 			try {
 				final HttpClient httpClient = getHttpClient();
@@ -119,6 +151,8 @@ public class ScanRequestResult extends ScanRequestBase{
 			report = new ScanReport(true, errorMessage,
 					false, "", scanReportEndpoint);
 		}
+		
+		this.report = report;
 		
 		return report;
 	}

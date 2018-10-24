@@ -2,7 +2,11 @@ package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.net.MalformedURLException;
@@ -32,11 +36,11 @@ public abstract class ScanRequestBase{
 				.build();
 	}
 	
-	protected String getAuthHeader() {
+	protected String getAuthHeader(){
 		String auth = ":" + ApiToken;
 		byte[] encodedAuth = Base64.encodeBase64(
 				auth.getBytes(StandardCharsets.ISO_8859_1));
-		String authHeader = "Basic " + new String(encodedAuth, StandardCharsets.UTF_8);
+		String authHeader = "Basic " + new String(encodedAuth, StandardCharsets.ISO_8859_1);
 		
 		return authHeader;
 	}
