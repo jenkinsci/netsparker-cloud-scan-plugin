@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <artifactId>netsparker-cloud-scan</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
@@ -145,7 +145,7 @@
 		<connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
 		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
 		<url>https://github.com/jenkinsci/jenkins</url>
-		<tag>1.1.5</tag>
+		<tag>${scmTag}</tag>
 	</scm>
 
     <licenses>
