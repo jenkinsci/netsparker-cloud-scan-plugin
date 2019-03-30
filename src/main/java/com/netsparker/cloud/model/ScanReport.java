@@ -1,10 +1,13 @@
 package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 
 public class ScanReport {
     private final HttpResponse reportRequestResponse;
@@ -13,6 +16,7 @@ public class ScanReport {
     private final boolean reportRequestHasError;
     private final String reportRequestErrorMessage;
     private final String requestURI;
+    private static String reportHtmlAsString = null;
 
     public ScanReport(HttpResponse reportRequestResponse, String requestURI) {
         this.reportRequestResponse = reportRequestResponse;
@@ -33,6 +37,10 @@ public class ScanReport {
         this.requestURI = requestURI;
     }
 
+    private String getContentType() {
+        return reportRequestResponse.getHeaders("Content-Type")[0].getValue();
+    }
+
     public boolean isReportGenerated() {
         //when report stored, it will be loaded from disk for later requests. There is an exception potential.
         try {
@@ -42,8 +50,12 @@ public class ScanReport {
         }
     }
 
-    private String getContentType() {
-        return reportRequestResponse.getHeaders("Content-Type")[0].getValue();
+    public static void setReportHtmlAsStringField(String reportHtml) {
+        ScanReport.reportHtmlAsString = reportHtml;
+    }
+
+    public void setReportHtmlAsString(String reportHtml) {
+        setReportHtmlAsStringField(reportHtml);
     }
 
     public String getContent() {
@@ -54,7 +66,19 @@ public class ScanReport {
             } else if (reportRequestHasError) {
                 content = ExceptionContent(content, reportRequestErrorMessage);
             } else {
-                String contentData = AppCommon.parseResponseToString(reportRequestResponse);
+
+                HttpEntity httpEntity = reportRequestResponse.getEntity();
+
+                String contentData = null;
+
+                try {
+                    contentData = AppCommon.parseResponseToString(reportRequestResponse);
+
+                    setReportHtmlAsString(contentData);
+                } catch (IOException ex) {
+                    contentData = reportHtmlAsString;
+                }
+
                 if (isReportGenerated()) {
                     content = contentData;
                 } else {

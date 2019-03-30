@@ -140,14 +140,13 @@
             <url>https://repo.jenkins-ci.org/public/</url>
         </pluginRepository>
     </pluginRepositories>
-  
     <scm>
-		<connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
-		<url>https://github.com/jenkinsci/jenkins</url>
-		<tag>${scmTag}</tag>
-	</scm>
-
+        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git
+        </developerConnection>
+        <url>https://github.com/jenkinsci/jenkins</url>
+        <tag>netsparker-cloud-scan-1.1.6</tag>
+    </scm>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -159,9 +158,9 @@
 
     <developers>
         <developer>
-            <id>duranserkan</id>
-            <name>Duran Serkan KILIÇ</name>
-            <email>duran@netsparker.com</email>
+            <id>alikrc</id>
+            <name>Ali Karaca</name>
+            <email>akaraca@netsparker.com</email>
         </developer>
     </developers>
 </project>

@@ -1,6 +1,7 @@
 package com.netsparker.cloud.model;
 
 import com.netsparker.cloud.utility.AppCommon;
+import hudson.util.Secret;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -21,7 +22,7 @@ public class WebsiteModelRequest extends ScanRequestBase{
 	private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
 	private HttpResponse response;
 	
-	public WebsiteModelRequest(String apiURL, String apiToken) throws MalformedURLException, NullPointerException, URISyntaxException {
+	public WebsiteModelRequest(String apiURL, Secret apiToken) throws MalformedURLException, NullPointerException, URISyntaxException {
 		super(apiURL, apiToken);
 		pluginWebSiteModelsUri =  new URL(ApiURL, "api/1.0/scans/PluginWebSiteModels").toURI();
 	}

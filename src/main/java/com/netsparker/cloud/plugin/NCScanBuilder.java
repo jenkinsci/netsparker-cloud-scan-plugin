@@ -1,27 +1,34 @@
 package com.netsparker.cloud.plugin;
 
-import com.netsparker.cloud.utility.AppCommon;
 import com.netsparker.cloud.model.*;
-import hudson.Launcher;
+import com.netsparker.cloud.utility.AppCommon;
 import hudson.Extension;
 import hudson.FilePath;
-import hudson.util.FormValidation;
+import hudson.Launcher;
 import hudson.model.AbstractProject;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import hudson.tasks.Builder;
 import hudson.tasks.BuildStepDescriptor;
+import hudson.tasks.Builder;
+import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
+import hudson.util.Secret;
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
-import org.kohsuke.stapler.*;
-import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
+import org.json.simple.parser.ParseException;
+import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
+import org.kohsuke.stapler.verb.POST;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 
@@ -30,7 +37,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private String ncScanType;
     private String ncWebsiteId;
     private String ncProfileId;
-    private String ncApiToken;
+    private Secret ncApiToken;
     private String ncServerURL;
 
     @DataBoundConstructor
@@ -73,13 +80,16 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         this.ncServerURL = ncServerURL;
     }
 
-    public String getNcApiToken() {
+    public Secret getNcApiToken() {
+        if (ncApiToken == null) {
+            ncApiToken = getDescriptor().getNcApiToken();
+        }
         return ncApiToken;
     }
 
     @DataBoundSetter
     public void setNcApiToken(String ncApiToken) {
-        this.ncApiToken = ncApiToken;
+        this.ncApiToken = Secret.fromString(ncApiToken);
     }
 
     @Override
@@ -102,7 +112,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         DescriptorImpl descriptor = getDescriptor();
         String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL() : getNcServerURL();
 
-        String ncApiToken = StringUtils.isBlank(getNcApiToken()) ? descriptor.getNcApiToken() : getNcApiToken();
+        Secret ncApiToken = getNcApiToken() != null && StringUtils.isBlank(getNcApiToken().getPlainText()) ?
+                descriptor.getNcApiToken() :
+                getNcApiToken();
+
         commit.setRootURL(descriptor.getRootURL());
 
         ScanRequest scanRequest = new ScanRequest(
@@ -153,7 +166,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         private ArrayList<WebsiteModel> websiteModels = new ArrayList<>();
 
         private String ncServerURL;
-        private String ncApiToken;
+        private Secret ncApiToken;
         private String rootURL;
 
         public DescriptorImpl() {
@@ -169,12 +182,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             this.ncServerURL = ncServerURL;
         }
 
-        public String getNcApiToken() {
+        public Secret getNcApiToken() {
             return ncApiToken;
         }
 
         public void setNcApiToken(String ncApiToken) {
-            this.ncApiToken = ncApiToken;
+            this.ncApiToken = Secret.fromString(ncApiToken);
         }
 
         public String getRootURL() {
@@ -196,7 +209,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 throws FormException {
             req.bindParameters(this);
             this.ncServerURL = formData.getString("ncServerURL");
-            this.ncApiToken = formData.getString("ncApiToken");
+            this.ncApiToken = Secret.fromString(formData.getString("ncApiToken"));
             this.rootURL = Jenkins.getInstance().getRootUrl();
             save();
             return super.configure(req, formData);
@@ -205,7 +218,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @Override
         public String getConfigPage() {
             try {
-                doValidateAPI(ncServerURL, ncApiToken);
+                updateWebsiteModels(ncServerURL, ncApiToken);
             } catch (Exception e) {
             }
 
@@ -264,15 +277,26 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             return model;
         }
 
+        private int updateWebsiteModels(final String ncServerURL, final Secret ncApiToken) throws IOException, URISyntaxException, ParseException {
+            WebsiteModelRequest websiteModelRequest = new WebsiteModelRequest(ncServerURL, ncApiToken);
+            final HttpResponse response = websiteModelRequest.getPluginWebSiteModels();
+            int statusCode = response.getStatusLine().getStatusCode();
+
+            if (statusCode == 200) {
+                websiteModels = new ArrayList<>();
+                websiteModels.addAll(websiteModelRequest.getWebsiteModels());
+            }
+
+            return statusCode;
+        }
+
+        @POST
         public FormValidation doValidateAPI(@QueryParameter final String ncServerURL,
-                                            @QueryParameter final String ncApiToken) {
+                                            @QueryParameter final Secret ncApiToken) {
+            Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
             try {
-                WebsiteModelRequest websiteModelRequest = new WebsiteModelRequest(ncServerURL, ncApiToken);
-                final HttpResponse response = websiteModelRequest.getPluginWebSiteModels();
-                int statusCode = response.getStatusLine().getStatusCode();
+                int statusCode = updateWebsiteModels(ncServerURL, ncApiToken);
                 if (statusCode == 200) {
-                    websiteModels = new ArrayList<>();
-                    websiteModels.addAll(websiteModelRequest.getWebsiteModels());
                     return FormValidation.ok("Successfully connected to the Netsparker Cloud.");
                 } else {
                     return FormValidation.error("Netsparker Cloud rejected the request. HTTP status code: " + statusCode);
@@ -292,6 +316,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             return FormValidation.ok();
         }
 
+        @POST
         public FormValidation doCheckNcApiToken(@QueryParameter String value) {
             if (value.length() == 0) {
                 return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiToken());

@@ -64,7 +64,6 @@
                 Q('#ncScanType-${editorId}').change();
                 Q(".jenkins-config").unbindArrive("#ncScanType-${editorId}");
             });
-
         </script>
     </f:section>
 </j:jelly>
