@@ -141,11 +141,10 @@
         </pluginRepository>
     </pluginRepositories>
     <scm>
-        <connection>scm:git:git://github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git
-        </developerConnection>
+        <connection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/jenkins</url>
-        <tag>netsparker-cloud-scan-1.1.6</tag>
+        <tag>${scmtag}</tag>
     </scm>
     <licenses>
         <license>
