@@ -1,5 +1,6 @@
 package com.netsparker.cloud.utility;
 
+import com.google.common.base.Charsets;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.http.HttpResponse;
@@ -120,6 +121,6 @@ public class AppCommon{
 	}
 	
 	public static String parseResponseToString(HttpResponse response) throws IOException {
-		return IOUtils.toString(response.getEntity().getContent());
+		return IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8);
 	}
 }
