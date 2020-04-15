@@ -4,8 +4,8 @@
     <st:adjunct includes="org.kohsuke.stapler.jquery"/>
     <!-- avoid conflict with prototype.js in core -->
     <script>var Q = jQuery.noConflict()</script>
-    <f:section title="Netsparker Cloud">
-        <f:entry title="Netsparker Cloud Server URL" field="ncServerURL" help="/plugin/netsparker-cloud-scan/help-ncserverurl.html">
+    <f:section title="Netsparker Enterprise">
+        <f:entry title="Netsparker Enterprise Server URL" field="ncServerURL" help="/plugin/netsparker-cloud-scan/help-ncserverurl.html">
             <f:textbox/>
         </f:entry>
         <f:entry title="API Token" field="ncApiToken" help="/plugin/netsparker-cloud-scan/help-ncapitoken.html">
@@ -16,7 +16,7 @@
                 method="validateAPI" with="ncServerURL,ncApiToken"/>
         <script type="text/javascript">
             (function () {
-            Q("input[name='_.ncServerURL']").attr('placeholder', "Cloud URL, like 'https://www.netsparkercloud.com'");
+            Q("input[name='_.ncServerURL']").attr('placeholder', "Server URL, like 'https://www.netsparkercloud.com'");
             })();
         </script>
     </f:section>

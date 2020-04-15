@@ -6,7 +6,7 @@
     <!-- avoid conflict with prototype.js in core -->
     <script>var Q = jQuery.noConflict()</script>
 
-    <l:layout title="Netsparker Cloud Scan Result">
+    <l:layout title="Netsparker Enterprise Scan Result">
         <l:side-panel>
             <st:include page="sidepanel.jelly" it="${it.run}" optional="true"/>
         </l:side-panel>

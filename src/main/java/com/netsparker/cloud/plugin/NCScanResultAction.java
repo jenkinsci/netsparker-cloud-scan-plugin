@@ -59,7 +59,7 @@ public class NCScanResultAction implements Action, RunAction2 {
     @CheckForNull
     @Override
     public String getDisplayName() {
-        return "Netsparker Cloud Report";
+        return "Netsparker Enterprise Report";
     }
 
     @CheckForNull

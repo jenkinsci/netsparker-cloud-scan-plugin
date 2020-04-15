@@ -15,9 +15,17 @@ import java.util.List;
 
 public class VCSCommit {
 
-    public static VCSCommit empty(Run<?, ?> build) {
-        return new VCSCommit(build, null);
-    }
+    private final String ciBuildServerVersion;
+    private final String ciNcPluginVersion;
+    private final String buildId;
+    private final String buildConfigurationName;
+    private final String buildURL;
+    private final boolean buildHasChange;
+    private final String versionControlName;
+    private final String committer;
+    private final String vcsVersion;
+    private final String ciTimestamp;
+    private String rootURL = "";
 
     public VCSCommit(Run<?, ?> build, ChangeLogSet<?> changelog) {
         buildId = String.valueOf(build.number);
@@ -47,31 +55,21 @@ public class VCSCommit {
                 committer = fullName;
             }
 
-
         } else {
             versionControlName = "";
             ciTimestamp = iso8601DateTimeFormat.format(new Date());
-            vcsVersion="";
+            vcsVersion = "";
             committer = "";
         }
 
         VersionNumber versionNumber = Jenkins.getVersion();
         ciBuildServerVersion = versionNumber != null ? versionNumber.toString() : "Not found.";
-        ciNcPluginVersion = "1.1.4";
+        ciNcPluginVersion = null; // don't add plugin version number
     }
 
-    private final String ciBuildServerVersion;
-    private final String ciNcPluginVersion;
-    private final String buildId;
-    private final String buildConfigurationName;
-    private final String buildURL;
-    private final boolean buildHasChange;
-    private final String versionControlName;
-    private final String committer;
-    private final String vcsVersion;
-    private final String ciTimestamp;
-
-    private String rootURL = "";
+    public static VCSCommit empty(Run<?, ?> build) {
+        return new VCSCommit(build, null);
+    }
 
     public void setRootURL(String rootURL) {
         if (rootURL == null) {
@@ -84,11 +82,15 @@ public class VCSCommit {
     public void addVcsCommitInfo(List<NameValuePair> params) {
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildId", buildId));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.IntegrationSystem", "Jenkins"));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildServerVersion", ciBuildServerVersion));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildConfigurationName", buildConfigurationName));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildServerVersion",
+                ciBuildServerVersion));
+        params.add(
+                new BasicNameValuePair("VcsCommitInfoModel.CiNcPluginVersion", ciNcPluginVersion));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildConfigurationName",
+                buildConfigurationName));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildUrl", rootURL + buildURL));
-        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildHasChange", String.valueOf(buildHasChange)));
+        params.add(new BasicNameValuePair("VcsCommitInfoModel.CiBuildHasChange",
+                String.valueOf(buildHasChange)));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.CiTimestamp", ciTimestamp));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsName", versionControlName));
         params.add(new BasicNameValuePair("VcsCommitInfoModel.VcsVersion", vcsVersion));
