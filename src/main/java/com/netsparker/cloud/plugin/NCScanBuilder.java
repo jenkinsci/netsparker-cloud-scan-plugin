@@ -27,7 +27,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import org.kohsuke.stapler.verb.POST;
-
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -439,11 +438,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             final String errorTemplate = "Error: %s";
             try {
 
-                final Jenkins jenkins = Jenkins.get();
+                String descriptorUrl = getCurrentDescriptorByNameUrl();
 
                 final StandardUsernamePasswordCredentials credential =
-                        AppCommon.findCredentialsById(credentialsId,
-                                jenkins.getDescriptor().getCurrentDescriptorByNameUrl());
+                        AppCommon.findCredentialsById(credentialsId, descriptorUrl);
 
                 if (credential == null) {
                     return FormValidation.error(errorTemplate, "Credentials not found.");
