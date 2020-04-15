@@ -203,8 +203,8 @@
         </license>
     </licenses>
 
-    <url>https://wiki.jenkins.io/display/JENKINS/Netsparker+Cloud+Scan+Plugin</url>
-
+    <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
+    
     <developers>
         <developer>
             <id>alikrc</id>
