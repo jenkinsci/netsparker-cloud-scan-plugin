@@ -174,7 +174,7 @@
             <artifactId>script-security</artifactId>
             <version>1.71</version>
         </dependency>
-        
+
 
     </dependencies>
 
@@ -194,7 +194,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
-        <tag>netsparker-cloud-scan-1.2.1</tag>
+        <tag>${scmtag}</tag>
     </scm>
     <licenses>
         <license>
@@ -204,7 +204,7 @@
     </licenses>
 
     <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
-    
+
     <developers>
         <developer>
             <id>alikrc</id>
