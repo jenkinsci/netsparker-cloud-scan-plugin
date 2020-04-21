@@ -26,7 +26,7 @@
             "label": "mvnDebug",
             "type": "shell",
             "dependsOn":["mvnClean"],
-            "command": "mvnDebug hpi:run -Djenkins.version=2.227",
+            "command": "mvnDebug hpi:run -Djenkins.version=2.233",
             "isBackground": true,
             "problemMatcher": [{
                 "pattern": [{
