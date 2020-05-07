@@ -156,8 +156,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
-            throws InterruptedException, IOException {
+    public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
+            TaskListener listener) throws InterruptedException, IOException {
         logInfo("Scan step created...", listener);
 
         NCScanSCMAction scmAction = build.getAction(NCScanSCMAction.class);
@@ -188,7 +188,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                     .filter(p -> p.getName().contains(apiTokenBuildParameterName)).findAny()
                     .orElse(null);
 
-            if (parameter != null) {
+            if (parameter != null && parameter.getValue() != null) {
                 Object value = parameter.getValue();
                 if (value.getClass() == Secret.class) {
                     secret = (Secret) value;
@@ -201,9 +201,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         return secret;
     }
 
-    private void ScanRequestHandler(Run<?, ?> build, VCSCommit commit, TaskListener listener) throws Exception {
+    private void ScanRequestHandler(Run<?, ?> build, VCSCommit commit, TaskListener listener)
+            throws Exception {
         DescriptorImpl descriptor = getDescriptor();
-        String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL() : getNcServerURL();
+        String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL()
+                : getNcServerURL();
 
         Secret ncApiToken = null;
 
@@ -244,28 +246,31 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         commit.setRootURL(rootUrl);
 
-        ScanRequest scanRequest = new ScanRequest(ncServerURL, ncApiToken, ncScanType, ncWebsiteId, ncProfileId,
-                commit);
+        ScanRequest scanRequest = new ScanRequest(ncServerURL, ncApiToken, ncScanType, ncWebsiteId,
+                ncProfileId, commit);
 
         logInfo("Requesting scan...", listener);
         HttpResponse scanRequestResponse = scanRequest.scanRequest();
-        logInfo("Response status code: " + scanRequestResponse.getStatusLine().getStatusCode(), listener);
+        logInfo("Response status code: " + scanRequestResponse.getStatusLine().getStatusCode(),
+                listener);
 
-        ScanRequestResult scanRequestResult = new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken);
+        ScanRequestResult scanRequestResult =
+                new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken);
         build.replaceAction(new NCScanResultAction(scanRequestResult));
 
         // HTTP status code 201 refers to created. This means our request added to
         // queue. Otherwise it is failed.
         if (scanRequestResult.getHttpStatusCode() == 201 && !scanRequestResult.isError()) {
-            ScanRequestSuccessHandler(ncServerURL, ncApiToken, scanRequestResult, scanRequestResult.getScanTaskId(),
-                    listener);
+            ScanRequestSuccessHandler(ncServerURL, ncApiToken, scanRequestResult,
+                    scanRequestResult.getScanTaskId(), listener);
         } else {
             ScanRequestFailureHandler(scanRequestResult, listener);
         }
     }
 
-    private void ScanRequestSuccessHandler(String ncServerURL, Secret ncApiToken, ScanRequestResult scanRequestResult,
-            String scanTaskId, TaskListener listener) throws IOException, URISyntaxException, InterruptedException {
+    private void ScanRequestSuccessHandler(String ncServerURL, Secret ncApiToken,
+            ScanRequestResult scanRequestResult, String scanTaskId, TaskListener listener)
+            throws IOException, URISyntaxException, InterruptedException {
         logInfo("Scan requested successfully.", listener);
         ScanTaskState scanStatus = ScanTaskState.Queued;
         Boolean scanAbortedExternally = false;
@@ -275,14 +280,16 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         try {
             while (!scanStatus.equals(ScanTaskState.Complete)) {
-                ScanInfoRequest scanInfoRequest = new ScanInfoRequest(ncServerURL, ncApiToken, scanTaskId);
+                ScanInfoRequest scanInfoRequest =
+                        new ScanInfoRequest(ncServerURL, ncApiToken, scanTaskId);
 
                 logInfo("Requesting scan info...", listener);
                 HttpResponse scanInfoRequestResponse = scanInfoRequest.scanInfoRequest();
-                logInfo("Response scan info status code: " + scanInfoRequestResponse.getStatusLine().getStatusCode(),
-                        listener);
+                logInfo("Response scan info status code: "
+                        + scanInfoRequestResponse.getStatusLine().getStatusCode(), listener);
 
-                ScanInfoRequestResult scanInfoRequestResult = new ScanInfoRequestResult(scanInfoRequestResponse);
+                ScanInfoRequestResult scanInfoRequestResult =
+                        new ScanInfoRequestResult(scanInfoRequestResponse);
 
                 if (scanInfoRequestResult.isError()) {
                     scanInfoConnectionError = true;
@@ -296,7 +303,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 if (scanInfoRequestResult.checkSeverity(ncSeverity)) {
                     isSeverityBreaked = true;
                     String severityText = SeverityOptionsForBuildFailMesssage().get(ncSeverity);
-                    String failMessage = "Build failed because scan contains " + severityText + " severity!";
+                    String failMessage =
+                            "Build failed because scan contains " + severityText + " severity!";
                     logInfo(failMessage, listener);
                     throw new hudson.AbortException(failMessage);
                 }
@@ -304,11 +312,14 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 if (scanStatus.equals(ScanTaskState.Scanning) && !isScanStarted) {
                     isScanStarted = true;
                     logInfo("Scan started...", listener);
-                } else if (scanStatus.equals(ScanTaskState.Failed) || scanStatus.equals(ScanTaskState.Cancelled)
-                        || scanStatus.equals(ScanTaskState.Paused) || scanStatus.equals(ScanTaskState.Pausing)) {
+                } else if (scanStatus.equals(ScanTaskState.Failed)
+                        || scanStatus.equals(ScanTaskState.Cancelled)
+                        || scanStatus.equals(ScanTaskState.Paused)
+                        || scanStatus.equals(ScanTaskState.Pausing)) {
                     scanAbortedExternally = true;
                     logInfo("Scan aborted because state is " + scanStatus.toString(), listener);
-                    throw new hudson.AbortException("The scan was aborted outside of this instance");
+                    throw new hudson.AbortException(
+                            "The scan was aborted outside of this instance");
                 }
 
                 Thread.sleep(10000);
@@ -334,24 +345,26 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private HashMap<String, String> SeverityOptionsForBuildFailMesssage() {
         HashMap<String, String> options = new HashMap<String, String>();
         options.put("DoNotFail", "Do not fail the build");
-        options.put("Critical","Critical");
-        options.put("Critical,High","High or above");
-        options.put("Critical,High,Medium","Medium or above");
-        options.put("Critical,High,Medium,Low","Low or above");
+        options.put("Critical", "Critical");
+        options.put("Critical,High", "High or above");
+        options.put("Critical,High,Medium", "Medium or above");
+        options.put("Critical,High,Medium,Low", "Low or above");
         return options;
-    }   
+    }
 
     private void CancelScan(String ncServerURL, Secret ncApiToken, String scanTaskId,
             TaskListener listener)
             throws IOException, MalformedURLException, NullPointerException, URISyntaxException {
-        ScanCancelRequest scanCancelRequest = new ScanCancelRequest(ncServerURL, ncApiToken, scanTaskId);
+        ScanCancelRequest scanCancelRequest =
+                new ScanCancelRequest(ncServerURL, ncApiToken, scanTaskId);
 
         logInfo("Requesting scan cancel...", listener);
         HttpResponse scanCancelRequestResponse = scanCancelRequest.scanCancelRequest();
-        logInfo("Response scan cancel status code: " + scanCancelRequestResponse.getStatusLine().getStatusCode(),
-                listener);
+        logInfo("Response scan cancel status code: "
+                + scanCancelRequestResponse.getStatusLine().getStatusCode(), listener);
 
-        ScanCancelRequestResult scanCancelRequestResult = new ScanCancelRequestResult(scanCancelRequestResponse);
+        ScanCancelRequestResult scanCancelRequestResult =
+                new ScanCancelRequestResult(scanCancelRequestResponse);
 
         if (scanCancelRequestResult.isError()) {
             logInfo("Scan cancel error", listener);
@@ -362,12 +375,14 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         }
     }
 
-    private void ScanRequestFailureHandler(ScanRequestResult scanRequestResult, TaskListener listener)
-            throws Exception {
-        logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage(), listener);
+    private void ScanRequestFailureHandler(ScanRequestResult scanRequestResult,
+            TaskListener listener) throws Exception {
+        logError("Scan request failed. Error Message: " + scanRequestResult.getErrorMessage(),
+                listener);
 
-        throw new Exception("Netsparker Enterprise Plugin: Failed to start the scan. Response status code: "
-                + scanRequestResult.getHttpStatusCode());
+        throw new Exception(
+                "Netsparker Enterprise Plugin: Failed to start the scan. Response status code: "
+                        + scanRequestResult.getHttpStatusCode());
     }
 
     private void logInfo(String message, TaskListener listener) {
@@ -453,7 +468,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         }
 
         @SuppressWarnings("unused")
-        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item owner, @QueryParameter String credentialsId) {
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath Item owner,
+                @QueryParameter String credentialsId) {
             StandardListBoxModel listBoxModel = new StandardListBoxModel();
             listBoxModel.includeEmptyValue();
 
@@ -462,12 +478,14 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                     return listBoxModel.includeCurrentValue(credentialsId);
                 }
             } else {
-                if (!owner.hasPermission(Item.EXTENDED_READ) && !owner.hasPermission(CredentialsProvider.USE_ITEM)) {
+                if (!owner.hasPermission(Item.EXTENDED_READ)
+                        && !owner.hasPermission(CredentialsProvider.USE_ITEM)) {
                     return listBoxModel.includeCurrentValue(credentialsId);
                 }
             }
 
-            for (StandardUsernamePasswordCredentials credentialToAdd : AppCommon.findCredentials(owner)) {
+            for (StandardUsernamePasswordCredentials credentialToAdd : AppCommon
+                    .findCredentials(owner)) {
                 listBoxModel.with(credentialToAdd);
             }
 
@@ -483,8 +501,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         }
 
         /*
-         * methods named "doFill{fieldname}Items" need to be implemented for to fill
-         * select boxes in UI
+         * methods named "doFill{fieldname}Items" need to be implemented for to fill select boxes in
+         * UI
          */
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcScanTypeItems() {
@@ -545,7 +563,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         private int updateWebsiteModels(final String ncServerURL, final Secret ncApiToken)
                 throws IOException, URISyntaxException, ParseException {
-            WebsiteModelRequest websiteModelRequest = new WebsiteModelRequest(ncServerURL, ncApiToken);
+            WebsiteModelRequest websiteModelRequest =
+                    new WebsiteModelRequest(ncServerURL, ncApiToken);
             final HttpResponse response = websiteModelRequest.getPluginWebSiteModels();
             int statusCode = response.getStatusLine().getStatusCode();
 
@@ -562,13 +581,16 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             try {
                 int statusCode = updateWebsiteModels(ncServerURL, ncApiToken);
                 if (statusCode == 200) {
-                    return FormValidation.ok("Successfully connected to the Netsparker Enterprise.");
+                    return FormValidation
+                            .ok("Successfully connected to the Netsparker Enterprise.");
                 } else {
                     return FormValidation
-                            .error("Netsparker Enterprise rejected the request. HTTP status code: " + statusCode);
+                            .error("Netsparker Enterprise rejected the request. HTTP status code: "
+                                    + statusCode);
                 }
             } catch (Exception e) {
-                return FormValidation.error("Failed to connect to the Netsparker Enterprise. : " + e.toString());
+                return FormValidation
+                        .error("Failed to connect to the Netsparker Enterprise. : " + e.toString());
             }
         }
 
@@ -610,9 +632,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public FormValidation doCheckNcServerURL(@QueryParameter String value) {
             if (value.length() == 0) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiURL());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiURL());
             } else if (!AppCommon.isUrlValid(value)) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidApiURL());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidApiURL());
             }
 
             return FormValidation.ok();
@@ -622,7 +646,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public FormValidation doCheckNcApiToken(@QueryParameter String value) {
             if (value.length() == 0) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiToken());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_missingApiToken());
             }
 
             return FormValidation.ok();
@@ -633,7 +658,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             try {
                 ScanType.valueOf(value);
             } catch (Exception ex) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidScanType());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidScanType());
             }
 
             return FormValidation.ok();
@@ -643,14 +669,16 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         public FormValidation doCheckNcWebsiteId(@QueryParameter String value) {
 
             if (!AppCommon.isGUIDValid(value)) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
             }
 
             return FormValidation.ok();
         }
 
         @SuppressWarnings("unused")
-        public FormValidation doCheckNcProfileId(@QueryParameter String value, @QueryParameter String ncScanType) {
+        public FormValidation doCheckNcProfileId(@QueryParameter String value,
+                @QueryParameter String ncScanType) {
 
             boolean isRequired;
 
@@ -658,11 +686,13 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 ScanType type = ScanType.valueOf(ncScanType);
                 isRequired = type != ScanType.FullWithPrimaryProfile;
             } catch (Exception ex) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
             }
 
             if (isRequired && !AppCommon.isGUIDValid(value)) {
-                return FormValidation.error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidProfileId());
             }
 
             return FormValidation.ok();
@@ -677,6 +707,6 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             items.add("Medium or above", "Critical,High,Medium");
             items.add("Low or above", "Critical,High,Medium,Low");
             return items;
-        } 
+        }
     }
 }
