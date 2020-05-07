@@ -78,6 +78,10 @@ public class ScanRequestResult extends ScanRequestBase {
                 scanReportEndpointUri.toString() + "?" + AppCommon.mapToQueryString(queryparams);
     }
 
+    public String getScanTaskId() {
+        return scanTaskID;
+    }
+
     public int getHttpStatusCode() {
         return httpStatusCode;
     }

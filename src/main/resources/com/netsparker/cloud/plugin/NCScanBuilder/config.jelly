@@ -22,9 +22,17 @@
         <f:entry title="Profile Name" help="/plugin/netsparker-cloud-scan/help-ncprofileid.html">
             <f:select field="ncProfileId" default="" id="ncProfileId-${editorId}"/>
         </f:entry>
+       
+        <f:entry title="${%Fail the build if scan contains }" field="ncSeverity" id="ncSeverity-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncseverity.html">
+            <f:select />
+        </f:entry>
+         <f:entry field="ncStopScan" id="ncStopScan-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncstopscan.html">
+            <f:checkbox field="ncStopScan" default="true"/>
+            ${%Stop the scan when build fails}
+        </f:entry>
 
         <f:advanced>
-            <f:entry title="Server URL - API Token Pair" field="credentialsId" help="/plugin/netsparker-cloud-scan/help-credentialsId.html">
+            <f:entry title="Server URL - API Token Pair" field="credentialsId" help="/plugin/netsparker-cloud-scan/help-credentialsid.html">
                 <c:select expressionAllowed="false" includeUser="true"/>
             </f:entry>
             <f:validateButton 
