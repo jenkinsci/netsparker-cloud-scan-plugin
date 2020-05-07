@@ -190,10 +190,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
             if (parameter != null && parameter.getValue() != null) {
                 Object value = parameter.getValue();
-                if (value.getClass() == Secret.class) {
-                    secret = (Secret) value;
-                } else if (value.getClass() == String.class) {
-                    secret = Secret.fromString((String) value);
+                if (value != null && value.getClass() != null) {
+                    if (value.getClass() == Secret.class) {
+                        secret = (Secret) value;
+                    } else if (value.getClass() == String.class) {
+                        secret = Secret.fromString((String) value);
+                    }
                 }
             }
         }
