@@ -23,11 +23,11 @@
             <f:select field="ncProfileId" default="" id="ncProfileId-${editorId}"/>
         </f:entry>
        
-        <f:entry title="${%Fail the build if scan contains }" field="ncSeverity" id="ncSeverity-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncseverity.html">
-            <f:select />
+        <f:entry title="${%Fail the build if scan contains }" field="ncSeverity" help="/plugin/netsparker-cloud-scan/help-ncseverity.html">
+            <f:select id="ncSeverity-${editorId}" />
         </f:entry>
          <f:entry field="ncStopScan" id="ncStopScan-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncstopscan.html">
-            <f:checkbox field="ncStopScan" default="true"/>
+            <f:checkbox field="ncStopScan" default="true" id="ncStopScan-${editorId}"/>
             ${%Stop the scan when build fails}
         </f:entry>
 
@@ -42,6 +42,9 @@
         </f:advanced>
 
         <script type="text/javascript">
+
+            
+
             (function () {
                 function setProfileNameVisibility() {
                     Q('#ncScanType-${editorId}').change(function () {
@@ -63,17 +66,58 @@
                     Q('#ncScanType-${editorId}').change();
                 };
 
+                function toggleStopScanCheckBox(ncSeverityValue)
+                {
+                        var ncStopScanRow = Q('#ncStopScan-${editorId}').closest("tr");
+                        var stopScanCheckBox = Q('#ncStopScan-${editorId}');
+
+                         if (ncSeverityValue == "DoNotFail") {
+                            
+                            ncStopScanRow.css("opacity","0.5");
+                            stopScanCheckBox.prop("checked", false);
+                            stopScanCheckBox.attr("disabled", "disabled");
+
+                        } else {
+                            
+                            ncStopScanRow.css("opacity","1");
+                            stopScanCheckBox.prop("checked", true);
+                            stopScanCheckBox.removeAttr("disabled");
+
+                        }
+                }
+
+                function setStopScanVisibility() {
+
+                    Q('#ncSeverity-${editorId}').change(function () {
+                        var ncSeverityValue = Q('#ncSeverity-${editorId}').val();
+                        toggleStopScanCheckBox(ncSeverityValue);
+                    })
+                };
+
                 setProfileNameVisibility();
 
                 //function will be triggered when #ncScanType-${editorId} element created first time inside .jenkins-config
                 //Previous function will be used later requests.
                 Q(".jenkins-config").arrive("#ncScanType-${editorId}", function () {
                     // 'this' refers to the newly created element
-
                     setProfileNameVisibility();
-
                     Q(".jenkins-config").unbindArrive("#ncScanType-${editorId}");
                 });
+
+                setStopScanVisibility();
+
+                 //function will be triggered when #ncSeverity-${editorId} element created first time inside .jenkins-config
+                Q(".jenkins-config").arrive("#ncSeverity-${editorId}", function () {
+                    // 'this' refers to the newly created element
+                    setStopScanVisibility();
+                    //default might be DotNotFail so check toogle, timeout used for element ready.
+                    setTimeout(function(){ 
+                        toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
+                     }, 500);
+
+                    Q(".jenkins-config").unbindArrive("#ncSeverity-${editorId}");
+                });
+
             })();
         </script>
     </f:section>
