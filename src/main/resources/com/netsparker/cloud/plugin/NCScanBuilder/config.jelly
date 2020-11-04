@@ -106,17 +106,25 @@
 
                 setStopScanVisibility();
 
+                //console.log("${editorId}");
+
                  //function will be triggered when #ncSeverity-${editorId} element created first time inside .jenkins-config
                 Q(".jenkins-config").arrive("#ncSeverity-${editorId}", function () {
                     // 'this' refers to the newly created element
                     setStopScanVisibility();
                     //default might be DotNotFail so check toogle, timeout used for element ready.
+                    console.log("${editorId} arrived");
                     setTimeout(function(){ 
                         toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
                      }, 500);
 
                     Q(".jenkins-config").unbindArrive("#ncSeverity-${editorId}");
                 });
+
+                //editor arrive doesn't work on edit.
+                 setTimeout(function(){ 
+                        toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
+                 }, 1000);
 
             })();
         </script>
