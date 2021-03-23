@@ -65,6 +65,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private String credentialsId;
     private String ncSeverity;
     private Boolean ncStopScan;
+    private Boolean ncConfirmed;
 
     private final String apiTokenBuildParameterName = "NETSPARKERAPITOKEN";
 
@@ -84,6 +85,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
     public Boolean getNcStopScan() {
         return ncStopScan;
+    }
+
+    public Boolean getNcConfirmed(){
+        return ncConfirmed;
     }
 
     public String getNcScanType() {
@@ -131,6 +136,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     @DataBoundSetter
     public void setNcStopScan(Boolean ncStopScan) {
         this.ncStopScan = ncStopScan;
+    }
+
+    @DataBoundSetter
+    public void setNcConfirmed(Boolean ncConfirmed){
+        this.ncConfirmed = ncConfirmed;
     }
 
     @DataBoundSetter
@@ -302,15 +312,25 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
                 scanStatus = scanInfoRequestResult.getScanTaskState();
 
-                if (scanInfoRequestResult.checkSeverity(ncSeverity)) {
-                    isSeverityBreaked = true;
-                    String severityText = SeverityOptionsForBuildFailMesssage().get(ncSeverity);
-                    String failMessage =
-                            "Build failed because scan contains " + severityText + " severity!";
-                    logInfo(failMessage, listener);
-                    throw new hudson.AbortException(failMessage);
+                if(ncConfirmed != null && ncConfirmed) {
+                    if (scanInfoRequestResult.checkConfirmedSeverity(ncSeverity)) {
+                        isSeverityBreaked = true;
+                        String severityText = SeverityOptionsForBuildFailMesssage().get(ncSeverity);
+                        String failMessage = "Build failed because scan contains confirmed " + severityText + " severity!";
+                        logInfo(failMessage, listener);
+                        throw new hudson.AbortException(failMessage);
+                    }
+                } else {
+                    if (scanInfoRequestResult.checkSeverity(ncSeverity)) {
+                        isSeverityBreaked = true;
+                        String severityText = SeverityOptionsForBuildFailMesssage().get(ncSeverity);
+                        String failMessage =
+                                "Build failed because scan contains " + severityText + " severity!";
+                        logInfo(failMessage, listener);
+                        throw new hudson.AbortException(failMessage);
+                    }
                 }
-
+                
                 if (scanStatus.equals(ScanTaskState.Scanning) && !isScanStarted) {
                     isScanStarted = true;
                     logInfo("Scan started...", listener);
@@ -351,6 +371,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         options.put("Critical,High", "High or above");
         options.put("Critical,High,Medium", "Medium or above");
         options.put("Critical,High,Medium,Low", "Low or above");
+        options.put("Critical,High,Medium,Low,Best Practice", "Best Practices or above");
         return options;
     }
 
@@ -573,6 +594,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             if (statusCode == 200) {
                 websiteModels = new ArrayList<>();
                 websiteModels.addAll(websiteModelRequest.getWebsiteModels());
+            }else if(statusCode == 401){
+                websiteModels.clear();
             }
 
             return statusCode;
@@ -708,6 +731,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             items.add("High or above", "Critical,High");
             items.add("Medium or above", "Critical,High,Medium");
             items.add("Low or above", "Critical,High,Medium,Low");
+            items.add("Best Practices or above", "Critical,High,Medium,Low,Best Practice");
             return items;
         }
     }

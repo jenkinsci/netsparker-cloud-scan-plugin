@@ -26,8 +26,14 @@
         <f:entry title="${%Fail the build if scan contains }" field="ncSeverity" help="/plugin/netsparker-cloud-scan/help-ncseverity.html">
             <f:select id="ncSeverity-${editorId}" />
         </f:entry>
-         <f:entry field="ncStopScan" id="ncStopScan-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncstopscan.html">
-            <f:checkbox field="ncStopScan" default="true" id="ncStopScan-${editorId}"/>
+
+        <f:entry field="ncConfirmed" id="ncConfirmed-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncconfirmed.html">
+            <f:checkbox field="ncConfirmed" id="ncConfirmed-${editorId}"/>
+            ${%Fail the build when scan contains confirmed}
+        </f:entry>
+
+        <f:entry field="ncStopScan" id="ncStopScan-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncstopscan.html">
+            <f:checkbox field="ncStopScan" id="ncStopScan-${editorId}"/>
             ${%Stop the scan when build fails}
         </f:entry>
 
@@ -80,9 +86,21 @@
                         } else {
                             
                             ncStopScanRow.css("opacity","1");
-                            stopScanCheckBox.prop("checked", true);
                             stopScanCheckBox.removeAttr("disabled");
 
+                        }
+                }
+
+                function toggleConfirmedCheckBox(ncSeverityValue){
+                    var ncConfirmedRow = Q('#ncConfirmed-${editorId}').closest("tr");
+                        var confirmedCheckBox = Q('#ncConfirmed-${editorId}');
+                         if (ncSeverityValue == "DoNotFail") {
+                            ncConfirmedRow.css("opacity","0.5");
+                            confirmedCheckBox.prop("checked", false);
+                            confirmedCheckBox.attr("disabled", "disabled");
+                        } else {
+                            ncConfirmedRow.css("opacity","1");
+                            confirmedCheckBox.removeAttr("disabled");
                         }
                 }
 
@@ -91,6 +109,14 @@
                     Q('#ncSeverity-${editorId}').change(function () {
                         var ncSeverityValue = Q('#ncSeverity-${editorId}').val();
                         toggleStopScanCheckBox(ncSeverityValue);
+                    })
+                };
+
+                function setConfirmedVisibility() {
+
+                    Q('#ncSeverity-${editorId}').change(function () {
+                        var ncSeverityValue = Q('#ncSeverity-${editorId}').val();
+                        toggleConfirmedCheckBox(ncSeverityValue);
                     })
                 };
 
@@ -105,17 +131,17 @@
                 });
 
                 setStopScanVisibility();
-
-                //console.log("${editorId}");
+                setConfirmedVisibility();
 
                  //function will be triggered when #ncSeverity-${editorId} element created first time inside .jenkins-config
                 Q(".jenkins-config").arrive("#ncSeverity-${editorId}", function () {
                     // 'this' refers to the newly created element
                     setStopScanVisibility();
+                    setConfirmedVisibility();
                     //default might be DotNotFail so check toogle, timeout used for element ready.
-                    console.log("${editorId} arrived");
                     setTimeout(function(){ 
                         toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
+                        toggleConfirmedCheckBox(Q("#ncSeverity-${editorId}").val());
                      }, 500);
 
                     Q(".jenkins-config").unbindArrive("#ncSeverity-${editorId}");
@@ -124,6 +150,7 @@
                 //editor arrive doesn't work on edit.
                  setTimeout(function(){ 
                         toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
+                        toggleConfirmedCheckBox(Q("#ncSeverity-${editorId}").val());
                  }, 1000);
 
             })();
