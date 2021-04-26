@@ -21,7 +21,6 @@ public class ScanInfoRequestResult extends ScanRequestBase {
     private String scanTaskID;
     private ScanTaskState scanTaskState;
     private HashMap<String, Integer> FoundedSeverityAndCounts;
-    private HashMap<String, Integer> FoundedConfirmedSeverityAndCounts;
     private boolean isError;
     private String errorMessage;
 
@@ -30,7 +29,6 @@ public class ScanInfoRequestResult extends ScanRequestBase {
         this.errorMessage = errorMessage;
         httpStatusCode = 0;
         FoundedSeverityAndCounts = new HashMap<String, Integer>();
-        FoundedConfirmedSeverityAndCounts = new HashMap<String, Integer>();
         isError = true;
         data = "";
     }
@@ -52,18 +50,12 @@ public class ScanInfoRequestResult extends ScanRequestBase {
 
                     org.json.simple.JSONObject foundedSeverityInfo = (org.json.simple.JSONObject) AppCommon
                             .parseJsonValue(data, "FoundedSeverityAndCounts");
-                    FoundedSeverityAndCounts = new Gson().fromJson(foundedSeverityInfo.toString(), HashMap.class);
-
-                    org.json.simple.JSONObject foundedConfirmedSeverityInfo = (org.json.simple.JSONObject) AppCommon
-                            .parseJsonValue(data, "FoundedConfirmedSeverityAndCounts");
-                    if (foundedConfirmedSeverityInfo != null) {
-                        FoundedConfirmedSeverityAndCounts = new Gson().fromJson(foundedConfirmedSeverityInfo.toString(),HashMap.class);
+                    if (foundedSeverityInfo != null) {
+                        FoundedSeverityAndCounts = new Gson().fromJson(foundedSeverityInfo.toString(), HashMap.class);
                     }
-
-                    if(FoundedConfirmedSeverityAndCounts == null){
-                        FoundedConfirmedSeverityAndCounts = new HashMap<String, Integer>();
+                    if(FoundedSeverityAndCounts == null){
+                        FoundedSeverityAndCounts = new HashMap<String, Integer>();
                     }
-
                 } else {
                     errorMessage = (String) AppCommon.parseJsonValue(data, "ErrorMessage");
                 }
@@ -87,10 +79,6 @@ public class ScanInfoRequestResult extends ScanRequestBase {
 
     public HashMap<String, Integer> getFoundedSeverityAndCounts() {
         return FoundedSeverityAndCounts;
-    }
-
-    public HashMap<String, Integer> getFoundedConfirmedSeverityAndCounts() {
-        return FoundedConfirmedSeverityAndCounts;
     }
 
     public int getHttpStatusCode() {
@@ -117,23 +105,6 @@ public class ScanInfoRequestResult extends ScanRequestBase {
                     return true;
                 }
             }
-            return false;
-        }
-    }
-
-    public boolean checkConfirmedSeverity(final String ncConfirmedSeverity) {
-        if (isError()) {
-            return false;
-        } else if (ncConfirmedSeverity == null) {
-            return false;
-        } else {
-            for (Map.Entry<String, Integer> entry : this.getFoundedConfirmedSeverityAndCounts().entrySet()) {
-                String foundedSeverityLevel = entry.getKey();
-                if (ncConfirmedSeverity.contains(foundedSeverityLevel)) {
-                    return true;
-                }
-            }
-
             return false;
         }
     }
