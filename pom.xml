@@ -34,6 +34,22 @@
                         <target>1.8</target>
                     </configuration>
                 </plugin>
+                <!--
+                this plugin adds version info to manifest, it's used to get plugin version
+                https://stackoverflow.com/questions/2712970/get-maven-artifact-version-at-runtime
+                -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <configuration>
+                        <archive>
+                            <manifest>
+                                <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                                <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                            </manifest>
+                        </archive>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
@@ -62,7 +78,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.11</version>
+            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -153,8 +169,6 @@
             <artifactId>script-security</artifactId>
             <version>1.71</version>
         </dependency>
-
-
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -178,7 +192,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
-        <tag>netsparker-cloud-scan-2.1.1</tag>
+        <tag>${scmtag}</tag>
     </scm>
     <licenses>
         <license>
