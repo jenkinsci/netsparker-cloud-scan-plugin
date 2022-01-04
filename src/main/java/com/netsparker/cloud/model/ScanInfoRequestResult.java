@@ -53,7 +53,7 @@ public class ScanInfoRequestResult extends ScanRequestBase {
                     if (foundedSeverityInfo != null) {
                         FoundedSeverityAndCounts = new Gson().fromJson(foundedSeverityInfo.toString(), HashMap.class);
                     }
-                    if(FoundedSeverityAndCounts == null){
+                    if (FoundedSeverityAndCounts == null) {
                         FoundedSeverityAndCounts = new HashMap<String, Integer>();
                     }
                 } else {
