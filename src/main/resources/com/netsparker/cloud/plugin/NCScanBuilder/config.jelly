@@ -22,6 +22,10 @@
         <f:entry title="Profile Name" help="/plugin/netsparker-cloud-scan/help-ncprofileid.html">
             <f:select field="ncProfileId" default="" id="ncProfileId-${editorId}"/>
         </f:entry>
+
+        <f:entry title="Report Type" field="ncReportType">
+            <f:select field="ncReportType" default="" id="ncReportType-${editorId}"/>
+        </f:entry>
        
         <f:entry title="${%Fail The Build If Scan Contains }" field="ncSeverity" help="/plugin/netsparker-cloud-scan/help-ncseverity.html">
             <f:select id="ncSeverity-${editorId}" />
@@ -200,6 +204,10 @@
                     // 'this' refers to the newly created element
                     setProfileNameVisibility();
                     Q(".jenkins-config").unbindArrive("#ncScanType-${editorId}");
+                });
+
+                Q(".jenkins-config").arrive("#ncReportType-${editorId}", function () {
+                    Q(".jenkins-config").unbindArrive("#ncReportType-${editorId}");
                 });
 
                 setStopScanVisibility();

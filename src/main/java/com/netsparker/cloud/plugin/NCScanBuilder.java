@@ -11,6 +11,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.netsparker.cloud.model.IgnoredVulnerabilityStateFilters;
+import com.netsparker.cloud.model.ReportType;
 import com.netsparker.cloud.model.ScanCancelRequest;
 import com.netsparker.cloud.model.ScanCancelRequestResult;
 import com.netsparker.cloud.model.ScanInfoRequest;
@@ -36,6 +37,8 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import org.kohsuke.stapler.verb.POST;
+import org.w3c.tidy.Report;
+
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -71,6 +74,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private Boolean ncIgnoreFalsePositive;
     private Boolean ncIgnoreRiskAccepted;
     private IgnoredVulnerabilityStateFilters ncFilters = new IgnoredVulnerabilityStateFilters();
+    private String ncReportType;
 
     private final String apiTokenBuildParameterName = "APITOKEN";
 
@@ -78,11 +82,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     // "DataBoundConstructor"
     // this ctor called when project's settings save method called
     @DataBoundConstructor
-    public NCScanBuilder(String ncScanType, String ncWebsiteId, String ncProfileId, Boolean ncDoNotFail) {
+    public NCScanBuilder(String ncScanType, String ncWebsiteId, String ncProfileId, Boolean ncDoNotFail, String ncReportType) {
         this.ncScanType = ncScanType == null ? "" : ncScanType;
         this.ncWebsiteId = ncWebsiteId == null ? "" : ncWebsiteId;
         this.ncProfileId = ncProfileId == null ? "" : ncProfileId;
         this.ncDoNotFail = ncDoNotFail;
+        this.ncReportType = ncReportType == null || ncReportType.equals("null") ? "ExecutiveSummary" : ncReportType;
     }
 
     public String getNcSeverity() {
@@ -208,6 +213,15 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         this.ncIgnoreRiskAccepted = ncIgnoreRiskAccepted;
     }
 
+    public String getNcReportType(){
+        return ncReportType;
+    }
+
+    @DataBoundSetter
+    public void setNcReportType(String ncReportType) {
+        this.ncReportType = ncReportType;
+    }
+
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
             TaskListener listener) throws InterruptedException, IOException {
@@ -310,7 +324,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 listener);
 
         ScanRequestResult scanRequestResult =
-                new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken);
+                new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken, ncReportType);
         build.replaceAction(new NCScanResultAction(scanRequestResult));
 
         setFilters();
@@ -605,6 +619,24 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             return model;
         }
 
+        @SuppressWarnings("unused")
+        public ListBoxModel doFillNcReportTypeItems() {
+            ListBoxModel model = new ListBoxModel();
+            model.add("-- Please select a report type --", "");
+            model.add("Detailed Scan Report","ScanDetail");       
+            model.add("Executive Summary","ExecutiveSummary"); 
+            model.add("Full Scan Detail","FullScanDetail");
+            model.add("HIPAA Compliance","HIPAACompliance"); 
+            model.add("ISO 27001 Compliance","Iso27001Compliance");
+            model.add("Knowledge Base", "KnowledgeBase");     
+            model.add("OWASP Top Ten 2013","OwaspTopTen2013");   
+            model.add("OWASP Top Ten 2017","OwaspTopTen2017"); 
+            model.add("PCI DSS Compliance","PCICompliance");  
+            model.add("SANS Top 25", "SansTop25");     
+            model.add("WASC Threat Classification","WASC");
+            return model;
+        }
+
         private int updateWebsiteModels(final String ncServerURL, final Secret ncApiToken)
                 throws IOException, URISyntaxException, ParseException {
             WebsiteModelRequest websiteModelRequest =
@@ -717,6 +749,19 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             if (!AppCommon.isGUIDValid(value)) {
                 return FormValidation
                         .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
+            }
+
+            return FormValidation.ok();
+        }
+
+        @SuppressWarnings("unused")
+        public FormValidation doCheckNcReportType(@QueryParameter String value) {
+
+            try {
+                ReportType.valueOf(value);
+            } catch (Exception ex) {
+                return FormValidation
+                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidReportType());
             }
 
             return FormValidation.ok();
