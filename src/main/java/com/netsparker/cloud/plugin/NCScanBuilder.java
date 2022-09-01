@@ -37,7 +37,6 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 import org.kohsuke.stapler.verb.POST;
-import org.w3c.tidy.Report;
 
 import hudson.Extension;
 import hudson.FilePath;
