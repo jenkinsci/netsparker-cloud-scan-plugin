@@ -622,7 +622,6 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcReportTypeItems() {
             ListBoxModel model = new ListBoxModel();
-            model.add("-- Please select a report type --", "");
             model.add("Detailed Scan Report","ScanDetail");       
             model.add("Executive Summary","ExecutiveSummary"); 
             model.add("Full Scan Detail","FullScanDetail");
