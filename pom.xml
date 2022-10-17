@@ -9,7 +9,7 @@
     </parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>netsparker-cloud-scan</artifactId>
-    <version>2.1.8-SNAPSHOT</version>
+    <version>2.1.8</version>
     <packaging>hpi</packaging>
     <properties>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
@@ -218,7 +218,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
-        <tag>2.1.8</tag>
+        <tag>netsparker-cloud-scan-2.1.8</tag>
     </scm>
     <licenses>
         <license>
