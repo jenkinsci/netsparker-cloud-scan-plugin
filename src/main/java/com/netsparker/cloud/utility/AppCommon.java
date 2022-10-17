@@ -1,26 +1,32 @@
 package com.netsparker.cloud.utility;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
+import com.cloudbees.hudson.plugins.folder.properties.FolderCredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsMatcher;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
+import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
+import hudson.slaves.NodeDescriptor;
 import jenkins.model.Jenkins;
+import org.apache.commons.codec.net.URLCodec;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
+import jakarta.mail.internet.AddressException;
+import jakarta.mail.internet.InternetAddress;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,14 +35,16 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+
 public class AppCommon {
 	public static List<String> getNames(Class<? extends Enum<?>> e) {
-		String[] enumNames = Arrays.toString(e.getEnumConstants()).replaceAll("^.|.$", "").split(", ");
+		String[] enumNames =
+				Arrays.toString(e.getEnumConstants()).replaceAll("^.|.$", "").split(", ");
 		return Arrays.asList(enumNames);
 	}
 
 	public static boolean isUrlValid(String url) {
-		String[] schemes = { "http", "https" }; // DEFAULT schemes = "http", "https", "ftp"
+		String[] schemes = {"http", "https"}; // DEFAULT schemes = "http", "https", "ftp"
 		UrlValidator urlValidator = new UrlValidator(schemes, UrlValidator.ALLOW_LOCAL_URLS);
 
 		if (urlValidator.isValid(url)) {
@@ -132,7 +140,7 @@ public class AppCommon {
 	}
 
 	public static String parseResponseToString(HttpResponse response) throws IOException {
-		return IOUtils.toString(response.getEntity().getContent(), Charsets.UTF_8);
+		return response.toString();
 	}
 
 	public static StandardUsernamePasswordCredentials findCredentialsById(
@@ -167,12 +175,13 @@ public class AppCommon {
 			}
 		}
 
-		List<StandardUsernamePasswordCredentials> matches = CredentialsProvider.lookupCredentials(
-				StandardUsernamePasswordCredentials.class,
-				credentialsContext, ACL.SYSTEM, (DomainRequirement) null);
+		List<StandardUsernamePasswordCredentials> matches =
+				CredentialsProvider.lookupCredentials(StandardUsernamePasswordCredentials.class,
+						credentialsContext, ACL.SYSTEM, (DomainRequirement) null);
 
 		final CredentialsMatcher matcher = CredentialsMatchers.withId(credentialsId);
-		final StandardUsernamePasswordCredentials result = CredentialsMatchers.firstOrNull(matches, matcher);
+		final StandardUsernamePasswordCredentials result =
+				CredentialsMatchers.firstOrNull(matches, matcher);
 
 		return result;
 	}
@@ -190,7 +199,8 @@ public class AppCommon {
 			 * "job/Folder Name/job/Project Name" or
 			 * "job/Folder Name/job/FolderInsideFolder/job/Project Name"
 			 */
-			projectFullUrl = URLDecoder.decode(descriptorUrlOrJobUrl, StandardCharsets.UTF_8.toString());
+			projectFullUrl =
+					URLDecoder.decode(descriptorUrlOrJobUrl, StandardCharsets.UTF_8.toString());
 
 			// substring url to make it starts with "job"
 			if (!projectFullUrl.startsWith("/job")) {
@@ -216,7 +226,8 @@ public class AppCommon {
 		Folder deepestFolder = folders.get(0);
 		Folder tempFolder;
 
-		Optional<Folder> f = folders.stream().filter(w -> w.getName().equals(folderNames.get(0))).findFirst();
+		Optional<Folder> f =
+				folders.stream().filter(w -> w.getName().equals(folderNames.get(0))).findFirst();
 		if (f.isPresent()) {
 			tempFolder = f.get();
 			if (CredentialsProvider.hasStores(tempFolder)) {
@@ -236,9 +247,9 @@ public class AppCommon {
 
 	public static List<StandardUsernamePasswordCredentials> findCredentials(Item own) {
 
-		final List<StandardUsernamePasswordCredentials> matches = CredentialsProvider.lookupCredentials(
-				StandardUsernamePasswordCredentials.class,
-				own, ACL.SYSTEM, (DomainRequirement) null);
+		final List<StandardUsernamePasswordCredentials> matches =
+				CredentialsProvider.lookupCredentials(StandardUsernamePasswordCredentials.class,
+						own, ACL.SYSTEM, (DomainRequirement) null);
 		return matches;
 	}
 }

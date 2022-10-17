@@ -2,7 +2,7 @@ package com.netsparker.cloud.model;
 
 import com.google.gson.Gson;
 import com.netsparker.cloud.utility.AppCommon;
-import org.apache.http.HttpResponse;
+import org.apache.hc.core5.http.HttpResponse;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class ScanInfoRequestResult extends ScanRequestBase {
 
     public ScanInfoRequestResult(final HttpResponse response) throws MalformedURLException, URISyntaxException {
         super();
-        httpStatusCode = response.getStatusLine().getStatusCode();
+        httpStatusCode = response.getCode();
         isError = httpStatusCode != 200;
 
         if (!isError) {
@@ -53,7 +53,7 @@ public class ScanInfoRequestResult extends ScanRequestBase {
                     if (foundedSeverityInfo != null) {
                         FoundedSeverityAndCounts = new Gson().fromJson(foundedSeverityInfo.toString(), HashMap.class);
                     }
-                    if (FoundedSeverityAndCounts == null) {
+                    if(FoundedSeverityAndCounts == null){
                         FoundedSeverityAndCounts = new HashMap<String, Integer>();
                     }
                 } else {

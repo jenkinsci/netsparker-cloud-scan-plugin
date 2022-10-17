@@ -3,8 +3,8 @@ package com.netsparker.cloud.model;
 import com.netsparker.cloud.utility.AppCommon;
 import hudson.util.Secret;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 
 import java.net.MalformedURLException;
 import java.net.URL;

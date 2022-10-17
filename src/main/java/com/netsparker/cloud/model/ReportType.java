@@ -27,4 +27,3 @@ public enum ReportType {
 		return String.valueOf(number);
 	}
 }
-
