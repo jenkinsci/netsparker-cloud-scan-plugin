@@ -1,25 +1,18 @@
 package com.netsparker.cloud.utility;
 
 import com.cloudbees.hudson.plugins.folder.Folder;
-import com.cloudbees.hudson.plugins.folder.properties.FolderCredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsMatcher;
 import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
-import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
-import com.google.common.base.Charsets;
-import com.google.common.base.Strings;
-import hudson.model.Descriptor;
 import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
-import hudson.slaves.NodeDescriptor;
 import jenkins.model.Jenkins;
-import org.apache.commons.codec.net.URLCodec;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.apache.hc.core5.http.HttpResponse;
+import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -139,8 +132,10 @@ public class AppCommon {
 		return value;
 	}
 
-	public static String parseResponseToString(HttpResponse response) throws IOException {
-		return response.toString();
+	public static String parseResponseToString(ClassicHttpResponse response) throws IOException {
+		final BasicHttpClientResponseHandler handler = new BasicHttpClientResponseHandler();
+		
+		return handler.handleResponse(response);
 	}
 
 	public static StandardUsernamePasswordCredentials findCredentialsById(
