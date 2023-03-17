@@ -573,7 +573,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             model.add("Incremental", "Incremental");
             model.add("Full (With primary profile)", "FullWithPrimaryProfile");
             model.add("Full (With selected profile)", "FullWithSelectedProfile");
-            model.get(1).selected = true;
+            
             return model;
         }
 
@@ -589,8 +589,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             for (WebsiteModel websiteModel : websiteModels) {
                 model.add(websiteModel.getDisplayName(), websiteModel.getId());
             }
-            model.get(1).selected = true;
-
+                
             return model;
         }
 
@@ -614,7 +613,6 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 for (WebsiteProfileModel websiteProfileModel : websiteProfileModels) {
                     model.add(websiteProfileModel.getName(), websiteProfileModel.getId());
                 }
-                model.get(1).selected = true;
             }
 
             return model;
@@ -634,7 +632,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             model.add("PCI DSS Compliance","PCICompliance");  
             model.add("SANS Top 25", "SansTop25");     
             model.add("WASC Threat Classification","WASC");
-            model.get(1).selected = true;
+            
             return model;
         }
 
@@ -642,7 +640,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 throws IOException, URISyntaxException, ParseException {
             WebsiteModelRequest websiteModelRequest =
                     new WebsiteModelRequest(ncServerURL, ncApiToken);
-                    final ClassicHttpResponse response = websiteModelRequest.getPluginWebSiteModels();
+            final ClassicHttpResponse response = websiteModelRequest.getPluginWebSiteModels();
             int statusCode = response.getCode();
 
             if (statusCode == 200) {
