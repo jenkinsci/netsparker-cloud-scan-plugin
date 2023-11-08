@@ -218,7 +218,7 @@
         <connection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/jenkinsci/${project.artifactId}-plugin.git</developerConnection>
         <url>https://github.com/jenkinsci/netsparker-cloud-scan-plugin</url>
-        <tag>netsparker-cloud-scan-2.1.11</tag>
+        <tag>netsparker-cloud-scan-2.1.12</tag>
     </scm>
     <licenses>
         <license>
