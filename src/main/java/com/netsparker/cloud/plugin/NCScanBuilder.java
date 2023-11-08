@@ -52,7 +52,6 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
-import hudson.util.ListBoxModel.Option;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
@@ -616,8 +615,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             } else {
                 model.add("Please Select Scan Profile","");
                 for (WebsiteProfileModel websiteProfileModel : websiteProfileModels) {
-                    boolean isSelected =  websiteProfileModels.size() == 1 ? true : false;
-                    model.add(new Option(websiteProfileModel.getName(), websiteProfileModel.getId(),isSelected));
+                    model.add(websiteProfileModel.getName(), websiteProfileModel.getId());
                 }
             }
 
