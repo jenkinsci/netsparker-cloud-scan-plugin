@@ -52,6 +52,7 @@ import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
 import hudson.util.Secret;
+import hudson.util.ListBoxModel.Option;
 import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
@@ -570,6 +571,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcScanTypeItems() {
             ListBoxModel model = new ListBoxModel();
+            model.add("Please Select Scan Type", "");
             model.add("Incremental", "Incremental");
             model.add("Full (With primary profile)", "FullWithPrimaryProfile");
             model.add("Full (With selected profile)", "FullWithSelectedProfile");
@@ -585,7 +587,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             }
 
             ListBoxModel model = new ListBoxModel();
-            
+            model.add("Please select website","");
             for (WebsiteModel websiteModel : websiteModels) {
                 model.add(websiteModel.getDisplayName(), websiteModel.getId());
             }
@@ -596,6 +598,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcProfileIdItems(@QueryParameter String ncWebsiteId) {
             WebsiteModel websiteModel = new WebsiteModel();
+            
             for (WebsiteModel wm : websiteModels) {
                 if (ncWebsiteId != null && wm.getId().equals(ncWebsiteId)) {
                     websiteModel = wm;
@@ -606,12 +609,15 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             String placeholderText;
             final ArrayList<WebsiteProfileModel> websiteProfileModels = websiteModel.getProfiles();
             ListBoxModel model = new ListBoxModel();
+            
             if (websiteProfileModels.isEmpty()) {
                 placeholderText = "-- No profile found --";
                 model.add(placeholderText, "");
             } else {
+                model.add("Please Select Scan Profile","");
                 for (WebsiteProfileModel websiteProfileModel : websiteProfileModels) {
-                    model.add(websiteProfileModel.getName(), websiteProfileModel.getId());
+                    boolean isSelected =  websiteProfileModels != null && websiteProfileModels.size() == 1 ? true : false;
+                    model.add(new Option(websiteProfileModel.getName(), websiteProfileModel.getId(),isSelected));
                 }
             }
 
@@ -621,6 +627,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcReportTypeItems() {
             ListBoxModel model = new ListBoxModel();
+            model.add("Please Select Report Type","");   
             model.add("Detailed Scan Report","ScanDetail");       
             model.add("Executive Summary","ExecutiveSummary"); 
             model.add("Full Scan Detail","FullScanDetail");
@@ -767,8 +774,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         }
 
         @SuppressWarnings("unused")
-        public FormValidation doCheckNcProfileId(@QueryParameter String value,
-                @QueryParameter String ncScanType) {
+        public FormValidation doCheckNcProfileId(@QueryParameter String value, @QueryParameter String ncScanType) {
 
             boolean isRequired;
 
