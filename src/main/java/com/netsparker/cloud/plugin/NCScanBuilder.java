@@ -616,7 +616,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             } else {
                 model.add("Please Select Scan Profile","");
                 for (WebsiteProfileModel websiteProfileModel : websiteProfileModels) {
-                    boolean isSelected =  websiteProfileModels != null && websiteProfileModels.size() == 1 ? true : false;
+                    boolean isSelected =  websiteProfileModels.size() == 1 ? true : false;
                     model.add(new Option(websiteProfileModel.getName(), websiteProfileModel.getId(),isSelected));
                 }
             }
