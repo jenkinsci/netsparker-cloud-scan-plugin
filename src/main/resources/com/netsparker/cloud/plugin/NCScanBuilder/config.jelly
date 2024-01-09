@@ -55,6 +55,11 @@
             ${%Stop The Scan When Build Fails}
         </f:entry>
 
+        <f:entry field="ncAbortScan" id="ncAbortScan-${editorId}" help="/plugin/netsparker-cloud-scan/help-ncabortscan.html">
+            <f:checkbox field="ncAbortScan" id="ncAbortScan-${editorId}"/>
+            ${%Stop The Scan When Build is Aborted}
+        </f:entry>
+
         <f:advanced>
             <f:entry title="Server URL - API Token Pair" field="credentialsId" help="/plugin/netsparker-cloud-scan/help-credentialsid.html">
                 <c:select expressionAllowed="false" includeUser="true"/>
@@ -156,12 +161,26 @@
                     }
                 }
 
+                function toggleAbortScanCheckBox()
+                {
+                        var ncAbortScanRow = Q('#ncAbortScan-${editorId}').closest("tr");
+                        var abortScanCheckBox = Q('#ncAbortScan-${editorId}');
+
+                         ncAbortScanRow.css("opacity","1");
+                         abortScanCheckBox.removeAttr("disabled");
+                }
+
                 function setStopScanVisibility() {
 
                     Q('#ncSeverity-${editorId}').change(function () {
                         var ncSeverityValue = Q('#ncSeverity-${editorId}').val();
                         toggleStopScanCheckBox(ncSeverityValue);
                     })
+                };
+
+                function setAbortScanVisibility() {
+
+                    toggleAbortScanCheckBox();
                 };
 
                 function setDoNotFailVisibility() {
@@ -215,6 +234,7 @@
                 setConfirmedVisibility();
                 setIgnoreFalsePositiveVisibility();
                 setIgnoreRiskAcceptedVisibility();
+                setAbortScanVisibility();
 
                  //function will be triggered when #ncSeverity-${editorId} element created first time inside .jenkins-config
                 Q(".jenkins-config").arrive("#ncSeverity-${editorId}", function () {
@@ -224,6 +244,7 @@
                     setConfirmedVisibility();
                     setIgnoreFalsePositiveVisibility();
                     setIgnoreRiskAcceptedVisibility();
+                    setAbortScanVisibility();
                     //default might be DotNotFail so check toogle, timeout used for element ready.
                     setTimeout(function(){
                         toggleStopScanCheckBox(Q("#ncSeverity-${editorId}").val());
@@ -231,6 +252,7 @@
                         toggleIgnoreFalsePositiveCheckBox(Q("#ncSeverity-${editorId}").val());
                         toggleIgnoreRiskAcceptedCheckBox(Q("#ncSeverity-${editorId}").val());
                         toggleDoNotFailHiddenCheckBox(Q("#ncSeverity-${editorId}").val());
+                        toggleAbortScanCheckBox();
                      }, 500);
 
                     Q(".jenkins-config").unbindArrive("#ncSeverity-${editorId}");
@@ -243,6 +265,7 @@
                         toggleIgnoreFalsePositiveCheckBox(Q("#ncSeverity-${editorId}").val());
                         toggleIgnoreRiskAcceptedCheckBox(Q("#ncSeverity-${editorId}").val());
                         toggleDoNotFailHiddenCheckBox(Q("#ncSeverity-${editorId}").val());
+                        toggleAbortScanCheckBox();
                  }, 1000);
 
             })();
