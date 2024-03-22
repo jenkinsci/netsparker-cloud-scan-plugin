@@ -8,7 +8,6 @@ import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.io.entity.StringEntity;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -17,8 +16,8 @@ import java.net.URL;
 
 public class ScanInfoRequest extends ScanRequestBase {
     public ScanInfoRequest(String apiURL, Secret apiToken,String scanTaskId, Boolean doNotFail, Boolean isConfirmed, 
-    IgnoredVulnerabilityStateFilters filters) throws MalformedURLException, NullPointerException, URISyntaxException {
-        super(apiURL, apiToken);
+    IgnoredVulnerabilityStateFilters filters, ProxyBlock proxy) throws MalformedURLException, NullPointerException, URISyntaxException {
+        super(apiURL, apiToken, proxy);
         this.scanTaskId = scanTaskId;
         this.scanInfoUri = new URL(ApiURL, "api/1.0/scans/ScanInfoForPlugin/").toURI();
         this.filters = filters;
@@ -37,11 +36,13 @@ public class ScanInfoRequest extends ScanRequestBase {
         final HttpGet httpGet = new HttpGet(scanInfoUri + scanTaskId);
         httpGet.setHeader("Accept", json);
         httpGet.setHeader(HttpHeaders.AUTHORIZATION, getAuthHeader());
+
         return (ClassicHttpResponse) client.execute(httpGet);
     }
 
     public ClassicHttpResponse scanInfoRequest() throws IOException {
         HttpClient httpClient = getHttpClient();
+
         try {
             HttpPost request = new HttpPost(scanInfoUri);
 

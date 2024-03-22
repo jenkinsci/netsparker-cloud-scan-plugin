@@ -11,9 +11,27 @@
         <f:entry title="API Token" field="ncApiToken" help="/plugin/netsparker-cloud-scan/help-ncapitoken.html">
             <f:password checkMethod="post"/>
         </f:entry>
+        <f:optionalBlock title="Connect using proxy" name="useProxy" inline="true" checked="${descriptor.useProxy}" help="/plugin/netsparker-cloud-scan/help-useproxy.html">
+		<f:entry title="Proxy Settings">
+			<table width="100%">
+				<f:entry title="Host" field="pHost" help="/plugin/netsparker-cloud-scan/help-phost.html">
+					<f:textbox />
+				</f:entry>
+				<f:entry title="Port" field="pPort" type="number" help="/plugin/netsparker-cloud-scan/help-pport.html">
+					<f:number />
+				</f:entry>
+				<f:entry title="Username" field="pUser" help="/plugin/netsparker-cloud-scan/help-puser.html">
+					<f:textbox />
+				</f:entry>
+				<f:entry title="Password" field="pPassword" help="/plugin/netsparker-cloud-scan/help-ppassword.html">
+					<f:password />
+				</f:entry>
+			</table>
+		</f:entry>
+	    </f:optionalBlock>
         <f:validateButton
                 title="Test Connection" progress="Testing..."
-                method="validateAPI" with="ncServerURL,ncApiToken"/>
+                method="validateAPI" with="ncServerURL,ncApiToken,useProxy,pHost,pPort,pUser,pPassword"/>
         <script type="text/javascript">
             (function () {
             Q("input[name='_.ncServerURL']").attr('placeholder', "Server URL, like 'https://www.netsparkercloud.com'");

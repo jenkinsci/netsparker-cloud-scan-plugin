@@ -12,6 +12,7 @@ import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
 import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import com.netsparker.cloud.model.IgnoredVulnerabilityStateFilters;
+import com.netsparker.cloud.model.ProxyBlock;
 import com.netsparker.cloud.model.ReportType;
 import com.netsparker.cloud.model.ScanCancelRequest;
 import com.netsparker.cloud.model.ScanCancelRequestResult;
@@ -76,6 +77,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private String ncScanTaskId;
     private Boolean ncAbortScan;
     private Boolean ncCancelEventFired;
+    private Boolean useProxy;
+    private String pHost;
+    private String pPort;
+    private String pUser;
+    private String pPassword;
 
     private final String apiTokenBuildParameterName = "APITOKEN";
 
@@ -248,6 +254,51 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         return ncAbortScan;
     }
 
+    @DataBoundSetter
+    public void setUseProxy(Boolean useProxy) {
+        this.useProxy = useProxy;
+    }
+
+    public Boolean getUseProxy() {
+        return useProxy;
+    }
+
+    @DataBoundSetter
+    public void setpHost(String pHost) {
+        this.pHost = pHost;
+    }
+
+    public String getpHost() {
+        return pHost;
+    }
+
+    @DataBoundSetter
+    public void setpPort(String pPort) {
+        this.pPort = pPort;
+    }
+
+    public String getpPort() {
+        return pPort;
+    }
+
+    @DataBoundSetter
+    public void setpUser(String pUser) {
+        this.pUser = pUser;
+    }
+
+    public String getpUser() {
+        return pUser;
+    }
+
+    @DataBoundSetter
+    public void setpPassword(String pPassword) {
+        this.pPassword = pPassword;
+    }
+
+    public String getpPassword() {
+        return pPassword;
+    }
+
     @Override
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
             TaskListener listener) throws InterruptedException, IOException {
@@ -261,18 +312,46 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         }
         catch(hudson.AbortException e)
         {
-            try{
+            try {
 
                 DescriptorImpl descriptor = getDescriptor();
+                
                 String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL()
-                : getNcServerURL();
+                    : getNcServerURL();
+
+                Secret ncApiToken = getNcApiToken() == null ? descriptor.getNcApiToken()
+                    : getNcApiToken();
+
+                ProxyBlock proxy = null;
+                String pHost = null;
+                String pPort = null;
+                String pUser = null;
+                String pPassword = null;
+                
+                Boolean useProxy = getUseProxy() == null ? descriptor.getUseProxy()
+                        : getUseProxy();
+
+                if (useProxy) {
+                    pHost = StringUtils.isBlank(getpHost()) ? descriptor.getpHost()
+                        : getpHost();
+                
+                    pPort = StringUtils.isBlank(getpPort()) ? descriptor.getpPort()
+                            : getpPort();
+                
+                    pUser = StringUtils.isBlank(getpUser()) ? descriptor.getpUser()
+                            : getpUser();
+                
+                    pPassword = StringUtils.isBlank(getpPassword()) ? descriptor.getpPassword()
+                        : getpPassword();
+
+                    proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
+                }
 
                 Boolean cancelScanWhenUserAbortsOperation = getNcAbortScan();
 
                 if (cancelScanWhenUserAbortsOperation && !getCancelState()) {
-                     CancelScan(ncServerURL, ncApiToken, getScanTaskId() , listener);    
+                     CancelScan(ncServerURL, ncApiToken, proxy, getScanTaskId() , listener);    
                 }
-                           
             }
             catch(Exception ex)
             {
@@ -321,11 +400,37 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
     private void ScanRequestHandler(Run<?, ?> build, VCSCommit commit, TaskListener listener)
             throws Exception {
+
         DescriptorImpl descriptor = getDescriptor();
         String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL()
                 : getNcServerURL();
 
         Secret ncApiToken = null;
+
+        ProxyBlock proxy = null;
+        String pHost = null;
+        String pPort = null;
+        String pUser = null;
+        String pPassword = null;
+
+        Boolean useProxy = getUseProxy() == null ? descriptor.getUseProxy()
+                : getUseProxy();
+        
+        if (useProxy) {
+            pHost = StringUtils.isBlank(getpHost()) ? descriptor.getpHost()
+                : getpHost();
+        
+            pPort = StringUtils.isBlank(getpPort()) ? descriptor.getpPort()
+                    : getpPort();
+
+            pUser = StringUtils.isBlank(getpUser()) ? descriptor.getpUser()
+                    : getpUser();
+
+            pPassword = StringUtils.isBlank(getpPassword()) ? descriptor.getpPassword()
+                : getpPassword();
+            
+            proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
+        }
 
         // jenkin's server url
         String rootUrl = null;
@@ -365,7 +470,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         commit.setRootURL(rootUrl);
 
         ScanRequest scanRequest = new ScanRequest(ncServerURL, ncApiToken, ncScanType, ncWebsiteId,
-                ncProfileId, commit);
+                ncProfileId, commit, proxy);
 
         logInfo("Requesting scan...", listener);
         ClassicHttpResponse scanRequestResponse = scanRequest.scanRequest();
@@ -373,7 +478,8 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 listener);
 
         ScanRequestResult scanRequestResult =
-                new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken, ncReportType);
+                new ScanRequestResult(scanRequestResponse, ncServerURL, ncApiToken, ncReportType,
+                 proxy);
         build.replaceAction(new NCScanResultAction(scanRequestResult));
 
         setFilters();
@@ -383,15 +489,15 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         // HTTP status code 201 refers to created. This means our request added to
         // queue. Otherwise it is failed.
         if (scanRequestResult.getHttpStatusCode() == 201 && !scanRequestResult.isError()) {
-            ScanRequestSuccessHandler(ncServerURL, ncApiToken, scanRequestResult,
-                    scanRequestResult.getScanTaskId(), ncDoNotFail, ncConfirmed, 
-                    ncFilters, listener);
+            ScanRequestSuccessHandler(ncServerURL, ncApiToken, proxy,
+                     scanRequestResult, scanRequestResult.getScanTaskId(), ncDoNotFail, ncConfirmed, 
+                     ncFilters, listener);
         } else {
             ScanRequestFailureHandler(scanRequestResult, listener);
         }
     }
 
-    private void ScanRequestSuccessHandler(String ncServerURL, Secret ncApiToken,
+    private void ScanRequestSuccessHandler(String ncServerURL, Secret ncApiToken, ProxyBlock proxy,
             ScanRequestResult scanRequestResult, String scanTaskId, Boolean doNotFail, Boolean isConfirmed, 
             IgnoredVulnerabilityStateFilters filters, TaskListener listener)
             throws IOException, URISyntaxException, InterruptedException {
@@ -405,7 +511,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         try {
             while (!scanStatus.equals(ScanTaskState.Complete)) {
                 ScanInfoRequest scanInfoRequest =
-                        new ScanInfoRequest(ncServerURL, ncApiToken, scanTaskId, ncDoNotFail, ncConfirmed, ncFilters);
+                        new ScanInfoRequest(ncServerURL, ncApiToken, scanTaskId, ncDoNotFail, ncConfirmed, ncFilters, proxy);
 
                 logInfo("Requesting scan info...", listener);
                 ClassicHttpResponse scanInfoRequestResponse = scanInfoRequest.scanInfoRequest();
@@ -451,7 +557,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             Boolean isCancel = (scanInfoConnectionError || ((ncStopScan != null && ncStopScan)
                 && (isSeverityBreaked || !scanAbortedExternally)));
             if (isCancel){
-                    CancelScan(ncServerURL, ncApiToken, scanTaskId, listener);
+                    CancelScan(ncServerURL, ncApiToken, proxy, scanTaskId, listener);
     
                     setCancelState(true);
                 }
@@ -479,10 +585,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         return options;
     }
 
-    private void CancelScan(String ncServerURL, Secret ncApiToken, String scanTaskId,
-            TaskListener listener)
+    private void CancelScan(String ncServerURL, Secret ncApiToken, ProxyBlock proxy,
+            String scanTaskId, TaskListener listener)
             throws IOException, MalformedURLException, NullPointerException, URISyntaxException {
-        ScanCancelRequest scanCancelRequest = new ScanCancelRequest(ncServerURL, ncApiToken, scanTaskId);
+
+        ScanCancelRequest scanCancelRequest = new ScanCancelRequest(ncServerURL, ncApiToken, scanTaskId, proxy);
 
         logInfo("Requesting scan cancel...", listener);
         ClassicHttpResponse scanCancelRequestResponse = scanCancelRequest.scanCancelRequest();
@@ -530,6 +637,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         private String ncServerURL;
         private Secret ncApiToken;
         private String rootURL;
+        private Boolean useProxy;
+        private String pHost;
+        private String pPort;
+        private String pUser;
+        private String pPassword;
 
         public DescriptorImpl() {
             super(NCScanBuilder.class);
@@ -544,6 +656,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             this.ncServerURL = ncServerURL;
         }
 
+
         public Secret getNcApiToken() {
             return ncApiToken;
         }
@@ -554,6 +667,46 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         public String getRootURL() {
             return rootURL;
+        }
+
+        public Boolean getUseProxy() {
+            return useProxy;
+        }
+
+        public void setUseProxy(Boolean useProxy) {
+            this.useProxy = useProxy;
+        }
+
+        public String getpHost() {
+            return pHost;
+        }
+
+        public void setpHost(String pHost) {
+            this.pHost = pHost;
+        }
+
+        public String getpPort() {
+            return pPort;
+        }
+
+        public void setpPort(String pPort) {
+            this.pPort = pPort;
+        }
+
+        public String getpUser() {
+            return pUser;
+        }
+
+        public void setpUser(String pUser) {
+            this.pUser = pUser;
+        }
+
+        public String getpPassword() {
+            return pPassword;
+        }
+
+        public void setpPassword(String pPassword) {
+            this.pPassword = pPassword;
         }
 
         @Override
@@ -573,6 +726,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             req.bindParameters(this);
             this.ncServerURL = formData.getString("ncServerURL");
             this.ncApiToken = Secret.fromString(formData.getString("ncApiToken"));
+            this.useProxy = formData.getBoolean("useProxy");
+            this.pHost = formData.getString("pHost");
+            this.pPort = formData.getString("pPort");
+            this.pUser = formData.getString("pUser");
+            this.pPassword = formData.getString("pPassword");
             this.rootURL = Jenkins.get().getRootUrl();
 
             // To persist global configuration information, set properties and call save().
@@ -582,8 +740,13 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         @Override
         public String getConfigPage() {
+            ProxyBlock proxy = null;
+            if (useProxy) {
+                proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
+            }
+
             try {
-                updateWebsiteModels(ncServerURL, ncApiToken);
+                updateWebsiteModels(ncServerURL, ncApiToken, proxy);
             } catch (Exception e) {
             }
 
@@ -640,6 +803,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         @SuppressWarnings("unused")
         public ListBoxModel doFillNcWebsiteIdItems(@QueryParameter String credentialsId) {
+      
 
             if (!StringUtils.isEmpty(credentialsId)) {
                 doTestConnection(credentialsId);
@@ -702,10 +866,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             return model;
         }
 
-        private int updateWebsiteModels(final String ncServerURL, final Secret ncApiToken)
-                throws IOException, URISyntaxException, ParseException {
+        private int updateWebsiteModels(final String ncServerURL, final Secret ncApiToken,
+         ProxyBlock proxy) throws IOException, URISyntaxException, ParseException {
             WebsiteModelRequest websiteModelRequest =
-                    new WebsiteModelRequest(ncServerURL, ncApiToken);
+                    new WebsiteModelRequest(ncServerURL, ncApiToken, proxy);
             final ClassicHttpResponse response = websiteModelRequest.getPluginWebSiteModels();
             int statusCode = response.getCode();
 
@@ -719,10 +883,11 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             return statusCode;
         }
 
-        private FormValidation validateConnection(final String ncServerURL,
-                final Secret ncApiToken) {
+        private FormValidation validateConnection(final String ncServerURL, final Secret ncApiToken,
+         final ProxyBlock proxy) {
+    
             try {
-                int statusCode = updateWebsiteModels(ncServerURL, ncApiToken);
+                int statusCode = updateWebsiteModels(ncServerURL, ncApiToken, proxy);
                 if (statusCode == 200) {
                     return FormValidation
                             .ok("Successfully connected to the Netsparker Enterprise.");
@@ -739,18 +904,27 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
 
         @POST
         @SuppressWarnings("unused")
-        public FormValidation doValidateAPI(@QueryParameter final String ncServerURL,
-                @QueryParameter final Secret ncApiToken) {
-
+        public FormValidation doValidateAPI(@QueryParameter final String ncServerURL, @QueryParameter final Secret ncApiToken,
+                        @QueryParameter final Boolean useProxy, 
+                        @QueryParameter final String pHost, 
+                        @QueryParameter final String pPort,
+                        @QueryParameter final String pUser,
+                        @QueryParameter final String pPassword) {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            
+            ProxyBlock proxy = null;
+            if (useProxy) {
+                proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
+            }
 
-            return validateConnection(ncServerURL, ncApiToken);
+            return validateConnection(ncServerURL, ncApiToken, proxy);
         }
 
         @SuppressWarnings("unused")
         public FormValidation doTestConnection(@QueryParameter final String credentialsId) {
-
+           
             final String errorTemplate = "Error: %s";
+            
             try {
 
                 String descriptorUrl = getCurrentDescriptorByNameUrl();
@@ -765,7 +939,12 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 String serverURL = credential.getUsername();
                 Secret apiToken = credential.getPassword();
 
-                return validateConnection(serverURL, apiToken);
+                ProxyBlock proxy = null;
+                if (this.useProxy) {
+                    proxy = new ProxyBlock(this.useProxy, this.pHost, this.pPort, this.pUser, this.pPassword);
+                } 
+
+                return validateConnection(serverURL, apiToken, proxy);
 
             } catch (Exception e) {
                 return FormValidation.error(e, errorTemplate, e.getMessage());

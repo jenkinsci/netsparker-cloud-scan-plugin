@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScanRequest extends ScanRequestBase {
-    public ScanRequest(String apiURL, Secret apiToken, String scanType, String websiteId,
-            String profileId, VCSCommit vcsCommit)
+    public ScanRequest(String apiURL, Secret apiToken, String scanType, String websiteId, String profileId, VCSCommit vcsCommit,
+            ProxyBlock proxy)
             throws MalformedURLException, NullPointerException, URISyntaxException {
-        super(apiURL, apiToken);
+        super(apiURL, apiToken, proxy);
         this.scanType = ScanType.valueOf(scanType);
         this.websiteId = websiteId;
         this.profileId = profileId;
@@ -47,6 +47,7 @@ public class ScanRequest extends ScanRequestBase {
         setScanParams(params);
         vcsCommit.addVcsCommitInfo(params);
         httpPost.setEntity(new UrlEncodedFormEntity(params));
+
         return (ClassicHttpResponse) client.execute(httpPost);
     }
 
@@ -59,6 +60,7 @@ public class ScanRequest extends ScanRequestBase {
         List<NameValuePair> params = new ArrayList<>();
         setScanParams(params);
         httpPost.setEntity(new UrlEncodedFormEntity(params));
+
         return (ClassicHttpResponse) client.execute(httpPost);
     }
 
