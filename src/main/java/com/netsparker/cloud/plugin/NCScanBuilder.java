@@ -310,6 +310,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         try {
             ScanRequestHandler(build, commit, listener);
         }
+        catch (RuntimeException e) {
+            logInfo(e.getMessage(), listener);
+            throw e; // Rethrow RuntimeException to handle it outside if necessary
+        }
         catch(hudson.AbortException e)
         {
             try {
@@ -319,31 +323,29 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL()
                     : getNcServerURL();
 
-                    if (!StringUtils.isEmpty(credentialsId)) {
-
-                        // build.getEnvironment().get("job_name")
-                        // "Folder 1/Folder 1 - Folder 1/Folder 1 - Folder 1 - Folder 1/Child Project"
-                        final StandardUsernamePasswordCredentials credential = AppCommon.findCredentialsById(
-                                credentialsId, build.getEnvironment(listener).get("job_name"));
-            
-                        if (credential != null) {
-                            ncServerURL = credential.getUsername();
-                            ncApiToken = credential.getPassword();
-                        }
+                if (!StringUtils.isEmpty(credentialsId)) {
+                    // build.getEnvironment().get("job_name")
+                    // "Folder 1/Folder 1 - Folder 1/Folder 1 - Folder 1 - Folder 1/Child Project"
+                    final StandardUsernamePasswordCredentials credential = AppCommon.findCredentialsById(
+                            credentialsId, build.getEnvironment(listener).get("job_name"));
+        
+                    if (credential != null) {
+                        ncServerURL = credential.getUsername();
+                        ncApiToken = credential.getPassword();
                     }
-            
-                    // if token is not set, try to get from global variable or selected credential
-                    // from settings
-                    if (ncApiToken == null || ncApiToken.getPlainText().isEmpty()) {
-                        ncApiToken =
-                                getNcApiToken() != null && StringUtils.isBlank(getNcApiToken().getPlainText())
-                                        ? descriptor.getNcApiToken()
-                                        : getNcApiToken();
-                    }
-
-                    if (Secret.toString(ncApiToken) == ("$" + apiTokenBuildParameterName)) {
-                        ncApiToken = GetApiTokenFromBuildParameters(build);
-                    }
+                }
+        
+                // if token is not set, try to get from global variable or selected credential
+                // from settings
+                if (ncApiToken == null || ncApiToken.getPlainText().isEmpty()) {
+                    ncApiToken =
+                            getNcApiToken() != null && StringUtils.isBlank(getNcApiToken().getPlainText())
+                                    ? descriptor.getNcApiToken()
+                                    : getNcApiToken();
+                }
+                if (Secret.toString(ncApiToken) == ("$" + apiTokenBuildParameterName)) {
+                    ncApiToken = GetApiTokenFromBuildParameters(build);
+                }
     
                 ProxyBlock proxy = null;
                 String pHost = null;
