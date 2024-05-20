@@ -300,7 +300,6 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher,
             TaskListener listener) throws InterruptedException, IOException {
         logInfo("Scan step created...", listener);
