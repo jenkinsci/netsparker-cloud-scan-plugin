@@ -379,6 +379,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                      CancelScan(ncServerURL, ncApiToken, proxy, getScanTaskId() , listener);    
                 }
             }
+            catch (RuntimeException ex) {
+                logInfo(ex.getMessage(), listener);
+                throw ex; // Rethrow RuntimeException to handle it outside if necessary
+            }
             catch(Exception ex)
             {
                 logInfo(ex.getMessage(), listener);
