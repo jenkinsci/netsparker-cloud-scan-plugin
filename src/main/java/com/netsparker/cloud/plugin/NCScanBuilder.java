@@ -319,9 +319,32 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 String ncServerURL = StringUtils.isBlank(getNcServerURL()) ? descriptor.getNcServerURL()
                     : getNcServerURL();
 
-                Secret ncApiToken = getNcApiToken() == null ? descriptor.getNcApiToken()
-                    : getNcApiToken();
+                    if (!StringUtils.isEmpty(credentialsId)) {
 
+                        // build.getEnvironment().get("job_name")
+                        // "Folder 1/Folder 1 - Folder 1/Folder 1 - Folder 1 - Folder 1/Child Project"
+                        final StandardUsernamePasswordCredentials credential = AppCommon.findCredentialsById(
+                                credentialsId, build.getEnvironment(listener).get("job_name"));
+            
+                        if (credential != null) {
+                            ncServerURL = credential.getUsername();
+                            ncApiToken = credential.getPassword();
+                        }
+                    }
+            
+                    // if token is not set, try to get from global variable or selected credential
+                    // from settings
+                    if (ncApiToken == null || ncApiToken.getPlainText().isEmpty()) {
+                        ncApiToken =
+                                getNcApiToken() != null && StringUtils.isBlank(getNcApiToken().getPlainText())
+                                        ? descriptor.getNcApiToken()
+                                        : getNcApiToken();
+                    }
+
+                    if (Secret.toString(ncApiToken) == ("$" + apiTokenBuildParameterName)) {
+                        ncApiToken = GetApiTokenFromBuildParameters(build);
+                    }
+    
                 ProxyBlock proxy = null;
                 String pHost = null;
                 String pPort = null;
@@ -331,7 +354,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 Boolean useProxy = getUseProxy() == null ? descriptor.getUseProxy()
                         : getUseProxy();
 
-                if (useProxy) {
+                if (useProxy != null && useProxy) {
                     pHost = StringUtils.isBlank(getpHost()) ? descriptor.getpHost()
                         : getpHost();
                 
@@ -416,7 +439,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         Boolean useProxy = getUseProxy() == null ? descriptor.getUseProxy()
                 : getUseProxy();
         
-        if (useProxy) {
+        if (useProxy != null && useProxy) {
             pHost = StringUtils.isBlank(getpHost()) ? descriptor.getpHost()
                 : getpHost();
         
@@ -455,11 +478,10 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                     getNcApiToken() != null && StringUtils.isBlank(getNcApiToken().getPlainText())
                             ? descriptor.getNcApiToken()
                             : getNcApiToken();
+        }
 
-
-            if (Secret.toString(ncApiToken) == ("$" + apiTokenBuildParameterName)) {
-                ncApiToken = GetApiTokenFromBuildParameters(build);
-            }
+        if (Secret.toString(ncApiToken) == ("$" + apiTokenBuildParameterName)) {
+            ncApiToken = GetApiTokenFromBuildParameters(build);
         }
 
         // StringUtils.isEmpty checks null or empty
@@ -741,7 +763,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
         @Override
         public String getConfigPage() {
             ProxyBlock proxy = null;
-            if (useProxy) {
+            if (useProxy != null && useProxy) {
                 proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
             }
 
@@ -913,7 +935,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             Jenkins.get().checkPermission(Jenkins.ADMINISTER);
             
             ProxyBlock proxy = null;
-            if (useProxy) {
+            if (useProxy != null && useProxy) {
                 proxy = new ProxyBlock(useProxy, pHost, pPort, pUser, pPassword);
             }
 
@@ -940,7 +962,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
                 Secret apiToken = credential.getPassword();
 
                 ProxyBlock proxy = null;
-                if (this.useProxy) {
+                if (this.useProxy != null && this.useProxy)  {
                     proxy = new ProxyBlock(this.useProxy, this.pHost, this.pPort, this.pUser, this.pPassword);
                 } 
 

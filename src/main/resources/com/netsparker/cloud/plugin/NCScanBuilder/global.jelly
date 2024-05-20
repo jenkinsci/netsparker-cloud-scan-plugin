@@ -11,7 +11,7 @@
         <f:entry title="API Token" field="ncApiToken" help="/plugin/netsparker-cloud-scan/help-ncapitoken.html">
             <f:password checkMethod="post"/>
         </f:entry>
-        <f:optionalBlock title="Connect using proxy" name="useProxy" inline="true" checked="${descriptor.useProxy}" help="/plugin/netsparker-cloud-scan/help-useproxy.html">
+        <f:optionalBlock title="Connect using proxy" name="useProxy" inline="true" checked="${descriptor.getUseProxy()}" help="/plugin/netsparker-cloud-scan/help-useproxy.html">
 		<f:entry title="Proxy Settings">
 			<table width="100%">
 				<f:entry title="Host" field="pHost" help="/plugin/netsparker-cloud-scan/help-phost.html">
