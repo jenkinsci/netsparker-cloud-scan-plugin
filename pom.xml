@@ -19,7 +19,7 @@
           ~ hpi-plugin.version: The HPI Maven Plugin version used by the plugin..
           ~ stapler-plugin.version: The Stapler Maven plugin version required by the plugin.
      -->
-        <java.level>21</java.level>
+        <java.level>17</java.level>
     </properties>
     <name>Netsparker Enterprise Scan Plugin</name>
     <description>Allows users to start security scans via Netsparker Enterprise.</description>
