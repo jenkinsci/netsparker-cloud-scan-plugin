@@ -83,7 +83,7 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
     private String pUser;
     private String pPassword;
 
-    private final String apiTokenBuildParameterName = "APITOKEN";
+    private static final String apiTokenBuildParameterName = "APITOKEN";
 
     // Fields in config.jelly must match the parameter names in the
     // "DataBoundConstructor"
@@ -1021,19 +1021,6 @@ public class NCScanBuilder extends Builder implements SimpleBuildStep {
             if (!AppCommon.isGUIDValid(value)) {
                 return FormValidation
                         .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidWebsiteId());
-            }
-
-            return FormValidation.ok();
-        }
-
-        @SuppressWarnings("unused")
-        public FormValidation doCheckNcReportType(@QueryParameter String value) {
-
-            try {
-                ReportType.valueOf(value);
-            } catch (Exception ex) {
-                return FormValidation
-                        .error(Messages.NCScanBuilder_DescriptorImpl_errors_invalidReportType());
             }
 
             return FormValidation.ok();
