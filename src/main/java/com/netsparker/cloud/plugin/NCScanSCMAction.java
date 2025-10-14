@@ -3,7 +3,7 @@ package com.netsparker.cloud.plugin;
 import com.netsparker.cloud.model.VCSCommit;
 import hudson.model.Action;
 
-import javax.annotation.CheckForNull;
+import edu.umd.cs.findbugs.annotations.CheckForNull;
 
 public class NCScanSCMAction implements Action {
 

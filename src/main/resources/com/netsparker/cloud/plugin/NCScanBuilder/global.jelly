@@ -2,8 +2,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
          xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <st:adjunct includes="org.kohsuke.stapler.jquery"/>
-    <!-- avoid conflict with prototype.js in core -->
-    <script>var Q = jQuery.noConflict()</script>
     <f:section title="Netsparker Enterprise">
         <f:entry title="Netsparker Enterprise Server URL" field="ncServerURL" help="/plugin/netsparker-cloud-scan/help-ncserverurl.html">
             <f:textbox/>
@@ -34,7 +32,7 @@
                 method="validateAPI" with="ncServerURL,ncApiToken,useProxy,pHost,pPort,pUser,pPassword"/>
         <script type="text/javascript">
             (function () {
-            Q("input[name='_.ncServerURL']").attr('placeholder', "Server URL, like 'https://www.netsparkercloud.com'");
+                jQuery("input[name='_.ncServerURL']").attr('placeholder', "Server URL, like 'https://www.netsparkercloud.com'");
             })();
         </script>
     </f:section>
